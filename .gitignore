@@ -1,0 +1,9 @@
+# Mac specific
+**/.DS_Store
+# IDE specific
+.vscode/
+.idea/
+# Build files
+build/
+cmake-build-debug/
+composed/
