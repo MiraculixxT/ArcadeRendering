@@ -11,37 +11,27 @@ using namespace glm;
 #include <framework/camera.hpp>
 #include <framework/mesh.hpp>
 #include <framework/imguiutil.hpp>
+
+#include <iostream>
+
+#include "cinematicEngine.hpp"
+using namespace arcader;
 #include <framework/gl/program.hpp>
 
 
 struct MainApp : public App {
-    Program program;
-    Mesh mesh;
-    Camera camera;
 
-    /**
-     * State defines in what render loop we are at the moment.
-     *
-     * 0 - black screen (start)<br>
-     * 1 - static camera, light flickers on<br>
-     * 2 - moving camera to main machine<br>
-     * 3 - static camera, rendering 2D game scene
-     */
-    int state = 0;
-    
+private:
+    AssetManager assetManager;
+    CinematicEngine cinematicEngine{&assetManager};
+
+public:
+
     MainApp() : App(600, 600) {
-        // Loading models/meshes
-        mesh.load("assets/meshes/arcade.obj");
-
-        // Loading shaders (fragment & vertex)
-        // program.load("shaders/<vertex_shader>.vsh", "shaders/<fragment_shader>.fsh")
-
-        // Initialize camera position
-        camera.worldPosition = vec3(0.0f, 0.0f, 0.0f);
-
         // OpenGL flags
         glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
+
     }
 
     /**
@@ -56,30 +46,17 @@ struct MainApp : public App {
         if (key == Key::COMMA && action == Action::PRESS) App::imguiEnabled = !App::imguiEnabled;
     }
 
-    /**
-     * Handle window resizing
-     * @param resolution new window resolution
-     */
-    void resizeCallback(const vec2& resolution) override {
-        camera.resize(resolution.x / resolution.y);
-    }
-
     void render() override {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Update camera (movement or resolution change)
-        camera.updateIfChanged();
-
-        // Program setup with uniforms
-        // program.use()
-        // program.set(key, value)
-        // program.draw()
+        cinematicEngine.render();
     }
 
     void buildImGui() override {
         ImGui::Begin("Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
         ImGui::Text("Reserved for later debugging");
-        ImGui::SliderInt("State", &state, 0, 5);
+        int currentState = cinematicEngine.getState();
+        ImGui::SliderInt("State", &currentState, 0, 5);
         ImGui::End();
     }
 };

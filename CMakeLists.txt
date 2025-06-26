@@ -7,6 +7,8 @@ file(GLOB INCLUDE_FILES include/*.h)
 set(SRC
     src/main.cpp
         src/game/gameManager.cpp
+        src/assetManager.cpp
+        src/cinematicEngine.cpp
         ${INCLUDE_FILES}
 )
 

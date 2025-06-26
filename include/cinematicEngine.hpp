@@ -19,7 +19,7 @@ namespace arcader {
 
     class CinematicEngine {
     public:
-        explicit CinematicEngine(assetManager *assetManager);
+        explicit CinematicEngine(AssetManager *assetManager);
 
         void update(float deltaTime);
 
@@ -34,26 +34,14 @@ namespace arcader {
         int getState() const;
 
     private:
-        void updateScene0(float dt);
+        void updateScene(int state, float dt);
 
-        void updateScene1(float dt);
-
-        void updateScene2(float dt);
-
-        void updateScene3(float dt);
-
-        void renderScene0();
-
-        void renderScene1();
-
-        void renderScene2();
-
-        void renderScene3();
+        void renderScene(int state);
 
         int state = 0;
         float timer = 0.0f;
 
-        assetManager *assets;
+        AssetManager *assets;
         Camera camera;
 
         // Optional: animation interpolation helpers
