@@ -6,7 +6,7 @@ file(GLOB INCLUDE_FILES include/*.h)
 
 set(SRC
     src/main.cpp
-        src/gameManager.cpp
+        src/game/gameManager.cpp
         ${INCLUDE_FILES}
 )
 
