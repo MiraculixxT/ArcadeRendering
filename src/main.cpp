@@ -21,7 +21,7 @@ struct MainApp : public App {
     
     MainApp() : App(600, 600) {
         // Loading models/meshes
-        // mesh.load("meshes/<model_name>.obj")
+        mesh.load("assets/meshes/arcade.obj");
 
         // Loading shaders (fragment & vertex)
         // program.load("shaders/<vertex_shader>.vsh", "shaders/<fragment_shader>.fsh")
