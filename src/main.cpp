@@ -18,6 +18,16 @@ struct MainApp : public App {
     Program program;
     Mesh mesh;
     Camera camera;
+
+    /**
+     * State defines in what render loop we are at the moment.
+     *
+     * 0 - black screen (start)<br>
+     * 1 - static camera, light flickers on<br>
+     * 2 - moving camera to main machine<br>
+     * 3 - static camera, rendering 2D game scene
+     */
+    int state = 0;
     
     MainApp() : App(600, 600) {
         // Loading models/meshes
@@ -69,6 +79,7 @@ struct MainApp : public App {
     void buildImGui() override {
         ImGui::Begin("Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
         ImGui::Text("Reserved for later debugging");
+        ImGui::SliderInt("State", &state, 0, 5);
         ImGui::End();
     }
 };
