@@ -32,8 +32,18 @@ struct Block {
 };
 
 class StateHandler {
+    /**
+     * Retrieves all available block types in the game.
+     * @return A vector containing all block types.
+     */
     static std::vector<BlockType> getBlockTypes();
-    static StaticAssets getTextureToFromType(const BlockType& type);
+
+    /**
+     * Maps a block type to its corresponding texture.
+     * @param type The block type to map.
+     * @return The texture associated with the given block type.
+     */
+    static StaticAssets getTextureToFromType(const BlockType &type);
 };
 } // arcader
 
