@@ -36,7 +36,9 @@ enum class StaticAssets {
     BLOCK_WOOD,
     BLOCK_LEAVES,
     BLOCK_STONE,
-    BLOCK_WATER
+    BLOCK_WATER,
+
+    ARCADE_MACHINE
 };
 
 class assetManager {
