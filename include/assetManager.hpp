@@ -30,6 +30,15 @@ struct RenderableAsset {
     }
 };
 
+enum class StaticAssets {
+    BLOCK_GRASS,
+    BLOCK_DIRT,
+    BLOCK_WOOD,
+    BLOCK_LEAVES,
+    BLOCK_STONE,
+    BLOCK_WATER
+};
+
 class assetManager {
 
     Mesh mesh;
