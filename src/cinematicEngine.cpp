@@ -7,7 +7,7 @@
 
 namespace arcader {
 
-CinematicEngine::CinematicEngine(assetManager* assets)
+CinematicEngine::CinematicEngine(AssetManager* assets)
     : state(0), timer(0.0f), assets(assets), camera() {}
 
 void CinematicEngine::update(float deltaTime) {

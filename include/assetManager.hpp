@@ -43,7 +43,7 @@ enum class StaticAssets {
     ARCADE_MACHINE
 };
 
-class assetManager {
+class AssetManager {
 
     Mesh mesh;
     Program program;
