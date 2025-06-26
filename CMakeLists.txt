@@ -2,8 +2,12 @@ cmake_minimum_required(VERSION 3.26..4.0)
 
 project(arcade VERSION 1.0 LANGUAGES CXX)
 
+file(GLOB INCLUDE_FILES include/*.h)
+
 set(SRC
     src/main.cpp
+        src/gameManager.cpp
+        ${INCLUDE_FILES}
 )
 
 # Fetch framework
@@ -19,4 +23,5 @@ FetchContent_MakeAvailable(framework)
 add_executable(${PROJECT_NAME} ${SRC})
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 target_include_directories(${PROJECT_NAME} PRIVATE src)
+target_include_directories(${PROJECT_NAME} PRIVATE include)
 target_link_libraries(${PROJECT_NAME} PRIVATE framework)
