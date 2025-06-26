@@ -31,6 +31,8 @@ struct RenderableAsset {
 };
 
 enum class StaticAssets {
+    MISSING_TEXTURE,
+
     BLOCK_GRASS,
     BLOCK_DIRT,
     BLOCK_WOOD,
