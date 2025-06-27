@@ -84,10 +84,9 @@ namespace arcader {
                             "shaders/arcade.fsh",
                             {
                                 "assets/textures/Arcade_Color.png",
-                                "assets/textures/Arcade_Emission.png",
                                 "assets/textures/Arcade_Metalness.png",
-                                "assets/textures/Arcade_NormalF.png",
-                                "assets/textures/Arcade_Roughness.png"
+                                "assets/textures/Arcade_Roughness.png",
+                                "assets/textures/Arcade_Emission.png"
                             }
                         );
                     }

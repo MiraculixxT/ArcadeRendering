@@ -1,21 +1,27 @@
 #version 330 core
 
+in vec2 fragTexCoord;
 in vec3 fragNormal;
-in vec3 worldPosition;
+in vec3 fragViewDir;
+
+uniform sampler2D tex0;
 
 out vec4 fragColor;
 
-uniform vec3 uCameraPos;
-uniform vec3 uLightDir = normalize(vec3(1.0, 1.0, 1.0));
-uniform vec3 uAlbedo = vec3(0.8, 0.2, 0.2);
-
 void main() {
-    vec3 N = normalize(fragNormal);                      // Korrektur hier
-    vec3 L = normalize(-uLightDir);
-    vec3 V = normalize(uCameraPos - worldPosition);
+    vec3 normal = normalize(fragNormal);
+    vec3 viewDir = normalize(fragViewDir);
+    vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
 
-    float diff = max(dot(N, L), 0.0);
-    vec3 diffuse = diff * uAlbedo;
+    vec3 texColor = texture(tex0, fragTexCoord).rgb;
 
-    fragColor = vec4(diffuse, 1.0);
+    // Ambient
+    float ambientStrength = 0.4;
+    vec3 ambient = ambientStrength * texColor;
+
+    // Diffuse
+    float diff = max(dot(normal, lightDir), 0.0);
+    vec3 diffuse = diff * texColor;
+
+    fragColor = vec4(ambient + diffuse, 1.0);
 }
