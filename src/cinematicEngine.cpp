@@ -5,6 +5,8 @@
 
 #include "cinematicEngine.hpp"
 #include <iostream>
+#include <glm/gtc/matrix_transform.hpp>
+
 
 namespace arcader {
 
@@ -67,9 +69,42 @@ namespace arcader {
         switch (state) {
             case 0:
                 camera.resize(1.0f); // Prevent division by zero
-                camera.worldPosition = {0.0f, 0.0f, 5.0f};
+                camera.worldPosition = {0.0f, 1.0f, 3.0f};
                 camera.target = {0.0f, 0.0f, 0.0f};
                 camera.update();
+
+                if (assets) {
+                    using enum StaticAssets;
+
+                    if (!assets->hasRenderable(ARCADE_MACHINE)) {
+                        assets->loadRenderable(
+                            ARCADE_MACHINE,
+                            "assets/meshes/arcade.obj",
+                            "shaders/arcade.vsh",
+                            "shaders/arcade.fsh",
+                            {
+                                "assets/textures/Arcade_Color.png",
+                                "assets/textures/Arcade_Emission.png",
+                                "assets/textures/Arcade_Metalness.png",
+                                "assets/textures/Arcade_NormalF.png",
+                                "assets/textures/Arcade_Roughness.png"
+                            }
+                        );
+                    }
+
+                    RenderableAsset arcade = assets->getRenderable(ARCADE_MACHINE);
+                    glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+                    modelMatrix = glm::scale(modelMatrix, glm::vec3(0.7f));
+                    glm::mat4 mvp = camera.projectionMatrix * camera.viewMatrix * modelMatrix;
+
+                    arcade.shader->use();
+                    arcade.shader->set("uWorldToClip", mvp);
+                    arcade.shader->set("uCameraPos", camera.worldPosition);
+                    arcade.shader->set("uModelMatrix", modelMatrix);
+                    arcade.shader->set("uNormalMatrix", glm::transpose(glm::inverse(glm::mat3(modelMatrix))));
+
+                    arcade.render();
+                }
                 break;
             case 1:
                 // Render static camera with light flickering

@@ -13,68 +13,73 @@
 
 namespace arcader {
 
-struct RenderableAsset {
-    Mesh* mesh;
-    Program* shader;
-    std::vector<Texture<GL_TEXTURE_2D>*> textures;
+    struct RenderableAsset {
+        Mesh* mesh;
+        Program* shader;
+        std::vector<Texture<GL_TEXTURE_2D>*> textures;
 
-    void render() const {
-        shader->use();
+        void render() const {
+            shader->use();
 
-        for (size_t i = 0; i < textures.size(); ++i) {
-            textures[i]->bindTextureUnit(static_cast<GLuint>(i));
-            shader->bindTextureUnit("tex" + std::to_string(i), static_cast<GLint>(i));
+            for (size_t i = 0; i < textures.size(); ++i) {
+                textures[i]->bindTextureUnit(static_cast<GLuint>(i));
+                shader->bindTextureUnit("tex" + std::to_string(i), static_cast<GLint>(i));
+            }
+
+            mesh->draw();
         }
+    };
 
-        mesh->draw();
-    }
-};
+    enum class StaticAssets {
+        MISSING_TEXTURE,
 
-enum class StaticAssets {
-    MISSING_TEXTURE,
+        BLOCK_GRASS,
+        BLOCK_DIRT,
+        BLOCK_WOOD,
+        BLOCK_LEAVES,
+        BLOCK_STONE,
+        BLOCK_WATER,
 
-    BLOCK_GRASS,
-    BLOCK_DIRT,
-    BLOCK_WOOD,
-    BLOCK_LEAVES,
-    BLOCK_STONE,
-    BLOCK_WATER,
+        ARCADE_MACHINE
+    };
 
-    ARCADE_MACHINE
-};
+    class AssetManager {
 
-class AssetManager {
+        Mesh mesh;
+        Program program;
 
-    Mesh mesh;
-    Program program;
+    public:
+        void loadMesh(const StaticAssets& name, const std::string& filepath);
+        void loadShader(const StaticAssets& name, const std::string& vertexPath, const std::string& fragmentPath);
 
-public:
-    void loadMesh(const std::string& name, const std::string& filepath);
-    void loadShader(const std::string& name, const std::string& vertexPath, const std::string& fragmentPath);
+        void loadTexture(const StaticAssets& name, const std::filesystem::path& filepath, GLenum internalFormat = GL_SRGB8_ALPHA8, GLint mipmaps = 0);
+        const Texture<GL_TEXTURE_2D>& getTexture(const StaticAssets& name) const;
 
-    void loadTexture(const std::string& name, const std::filesystem::path& filepath, GLenum internalFormat = GL_SRGB8_ALPHA8, GLint mipmaps = 0);
-    const Texture<GL_TEXTURE_2D>& getTexture(const std::string& name) const;
+        const Mesh& getMesh(const StaticAssets& name) const;
+        const Program& getShader(const StaticAssets& name) const;
 
-    const Mesh& getMesh(const std::string& name) const;
-    const Program& getShader(const std::string& name) const;
+        RenderableAsset getRenderable(const StaticAssets& name) const;
+        void registerRenderable(const StaticAssets& name, const std::string& mesh, const std::string& shader, const std::vector<std::string>& textureNames);
 
-    RenderableAsset getRenderable(const std::string& name) const;
-    void registerRenderable(const std::string& name, const std::string& mesh, const std::string& shader, const std::vector<std::string>& textureNames);
+        void loadRenderable(const StaticAssets& name,
+                            const std::filesystem::path& meshPath,
+                            const std::filesystem::path& vertexShader,
+                            const std::filesystem::path& fragmentShader,
+                            const std::vector<std::filesystem::path>& texturePaths,
+                            GLenum internalFormat = GL_SRGB8_ALPHA8,
+                            GLint mipmaps = 0);
 
-    void loadRenderable(const std::string& name,
-                        const std::filesystem::path& meshPath,
-                        const std::filesystem::path& vertexShader,
-                        const std::filesystem::path& fragmentShader,
-                        const std::vector<std::filesystem::path>& texturePaths,
-                        GLenum internalFormat = GL_SRGB8_ALPHA8,
-                        GLint mipmaps = 0);
+        bool hasRenderable(const StaticAssets &name) const;
 
-private:
-    std::unordered_map<std::string, Mesh> meshes;
-    std::unordered_map<std::string, Program> shaders;
-    std::unordered_map<std::string, Texture<GL_TEXTURE_2D>> textures;
-    std::unordered_map<std::string, RenderableAsset> renderables;
-};
+    private:
+        std::unordered_map<StaticAssets, Mesh> meshes;
+        std::unordered_map<StaticAssets, Program> shaders;
+        std::unordered_map<StaticAssets, Texture<GL_TEXTURE_2D>> textures;
+        std::unordered_map<StaticAssets, RenderableAsset> renderables;
+
+        void registerRenderable(const StaticAssets &name, const StaticAssets &meshName, const StaticAssets &shaderName,
+                                const std::vector<StaticAssets> &textureNames);
+    };
 
 } // arcader
 
