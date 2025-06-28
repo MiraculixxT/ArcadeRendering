@@ -10,6 +10,8 @@ set(SRC
         src/assetManager.cpp
         src/cinematicEngine.cpp
         ${INCLUDE_FILES}
+        include/lightingSystem.hpp
+        src/lightingSystem.cpp
 )
 
 # Fetch framework

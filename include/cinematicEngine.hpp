@@ -8,6 +8,7 @@
 #include <framework/camera.hpp>
 #include "assetManager.hpp"
 #include <memory>
+#include "lightingSystem.hpp"
 
 /**
  * @brief Controls cinematic sequences including timed camera movement and rendering transitions.
@@ -33,6 +34,8 @@ namespace arcader {
 
         int getState() const;
 
+        void renderArcade();
+
     private:
         void updateScene(int state, float dt);
 
@@ -43,6 +46,7 @@ namespace arcader {
 
         AssetManager *assets;
         Camera camera;
+        LightingSystem lighting;
 
         // Optional: animation interpolation helpers
     };

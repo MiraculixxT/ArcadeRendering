@@ -46,9 +46,20 @@ public:
         if (key == Key::COMMA && action == Action::PRESS) App::imguiEnabled = !App::imguiEnabled;
     }
 
+
     void render() override {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // Zeit berechnen
+        static float lastTime = 0.0f;
+        float currentTime = static_cast<float>(glfwGetTime());
+        float deltaTime = currentTime - lastTime;
+        lastTime = currentTime;
+
+        // Update manuell aufrufen
+        cinematicEngine.update(deltaTime);
+
+        // Danach rendern
         cinematicEngine.render();
     }
 
