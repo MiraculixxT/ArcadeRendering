@@ -10,6 +10,7 @@
 #include <framework/mesh.hpp>
 #include <framework/gl/program.hpp>
 #include <framework/gl/texture.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace arcader {
 
@@ -18,8 +19,17 @@ namespace arcader {
         Program* shader;
         std::vector<Texture<GL_TEXTURE_2D>*> textures;
 
-        void render() const {
+        void render(const glm::mat4& worldToClip,
+                    const glm::vec3& position = glm::vec3(0.0f),
+                    const glm::vec3& scale = glm::vec3(1.0f)) const {
+            glm::mat4 model = glm::translate(glm::mat4(1.0f), position) *
+                              glm::scale(glm::mat4(1.0f), scale);
+            glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(model)));
+
             shader->use();
+            shader->set("uWorldToClip", worldToClip);
+            shader->set("uModelMatrix", model);
+            shader->set("uNormalMatrix", normalMatrix);
 
             for (size_t i = 0; i < textures.size(); ++i) {
                 textures[i]->bindTextureUnit(static_cast<GLuint>(i));
@@ -70,6 +80,14 @@ namespace arcader {
                             GLint mipmaps = 0);
 
         bool hasRenderable(const StaticAssets &name) const;
+
+        void render(const StaticAssets& asset,
+                    const glm::mat4& worldToClip,
+                    const glm::vec3& position = glm::vec3(0.0f),
+                    const glm::vec3& scale = glm::vec3(1.0f)) const {
+            if (!hasRenderable(asset)) return;
+            renderables.at(asset).render(worldToClip, position, scale);
+        }
 
     private:
         std::unordered_map<StaticAssets, Mesh> meshes;

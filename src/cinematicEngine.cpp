@@ -69,7 +69,7 @@ namespace arcader {
         switch (state) {
             case 0:
                 camera.resize(1.0f); // Prevent division by zero
-                camera.worldPosition = {0.0f, 1.0f, 3.0f};
+                camera.worldPosition = {0.0f, 3.0f, 3.0f};
                 camera.target = {0.0f, 0.0f, 0.0f};
                 camera.update();
 
@@ -84,25 +84,30 @@ namespace arcader {
                             "shaders/arcade.fsh",
                             {
                                 "assets/textures/Arcade_Color.png",
-                                "assets/textures/Arcade_Metalness.png",
-                                "assets/textures/Arcade_Roughness.png",
-                                "assets/textures/Arcade_Emission.png"
                             }
                         );
                     }
 
-                    RenderableAsset arcade = assets->getRenderable(ARCADE_MACHINE);
-                    glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -1.0f, 0.0f));
-                    modelMatrix = glm::scale(modelMatrix, glm::vec3(0.7f));
-                    glm::mat4 mvp = camera.projectionMatrix * camera.viewMatrix * modelMatrix;
+                    assets->render(
+                            ARCADE_MACHINE,
+                            camera.projectionMatrix * camera.viewMatrix,
+                            glm::vec3(-1.5f, -1.0f, 0.0f), // linke Maschine
+                            glm::vec3(0.5f)
+                    );
 
-                    arcade.shader->use();
-                    arcade.shader->set("uWorldToClip", mvp);
-                    arcade.shader->set("uCameraPos", camera.worldPosition);
-                    arcade.shader->set("uModelMatrix", modelMatrix);
-                    arcade.shader->set("uNormalMatrix", glm::transpose(glm::inverse(glm::mat3(modelMatrix))));
+                    assets->render(
+                            ARCADE_MACHINE,
+                            camera.projectionMatrix * camera.viewMatrix,
+                            glm::vec3(0.0f, -1.0f, 0.0f), // mittlere Maschine
+                            glm::vec3(0.5f)
+                    );
 
-                    arcade.render();
+                    assets->render(
+                            ARCADE_MACHINE,
+                            camera.projectionMatrix * camera.viewMatrix,
+                            glm::vec3(1.5f, -1.0f, 0.0f), // rechte Maschine
+                            glm::vec3(0.5f)
+                    );
                 }
                 break;
             case 1:

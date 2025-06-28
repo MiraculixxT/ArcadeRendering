@@ -74,18 +74,14 @@ namespace arcader {
         registerRenderable(name, meshName, shaderName, textureNames);
     }
 
-    void AssetManager::registerRenderable(const StaticAssets& name,
-                                          const StaticAssets& meshName,
-                                          const StaticAssets& shaderName,
-                                          const std::vector<StaticAssets>& textureNames) {
+    void AssetManager::registerRenderable(const StaticAssets &name, const StaticAssets &meshName, const StaticAssets &shaderName,
+                                          const std::vector<StaticAssets> &textureNames) {
         RenderableAsset asset;
         asset.mesh = &meshes.at(meshName);
         asset.shader = &shaders.at(shaderName);
-
-        for (const auto& texName : textureNames) {
+        for (const auto &texName : textureNames) {
             asset.textures.push_back(&textures.at(texName));
         }
-
         renderables[name] = std::move(asset);
     }
 
