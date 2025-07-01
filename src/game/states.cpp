@@ -14,7 +14,8 @@ std::vector<BlockType> StateHandler::getBlockTypes() {
         BlockType::WOOD,
         BlockType::LEAVES,
         BlockType::STONE,
-        BlockType::WATER
+        BlockType::WATER,
+        BlockType::AIR,
     };
 }
 
@@ -26,6 +27,7 @@ StaticAssets StateHandler::getTextureToFromType(const BlockType &type) {
         case BlockType::LEAVES: return StaticAssets::BLOCK_LEAVES;
         case BlockType::STONE: return StaticAssets::BLOCK_STONE;
         case BlockType::WATER: return StaticAssets::BLOCK_WATER;
+        case BlockType::AIR: return StaticAssets::BLOCK_AIR;
         default: return StaticAssets::MISSING_TEXTURE;
     }
 };

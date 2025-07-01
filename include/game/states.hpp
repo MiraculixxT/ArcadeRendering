@@ -19,7 +19,9 @@ enum class BlockType {
     WOOD,
     LEAVES,
     STONE,
-    WATER
+    WATER,
+
+    AIR
 };
 
 /**

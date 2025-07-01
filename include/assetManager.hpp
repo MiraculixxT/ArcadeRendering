@@ -49,6 +49,7 @@ namespace arcader {
         BLOCK_LEAVES,
         BLOCK_STONE,
         BLOCK_WATER,
+        BLOCK_AIR,
 
         ARCADE_MACHINE
     };
