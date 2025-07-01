@@ -36,6 +36,9 @@ namespace arcader {
 
         void renderArcade();
 
+        const int windowWidth = 600;
+        const int windowHeight = 600;
+
     private:
         void updateScene(int state, float dt);
 

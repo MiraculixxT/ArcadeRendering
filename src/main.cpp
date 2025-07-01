@@ -27,7 +27,7 @@ private:
 
 public:
 
-    MainApp() : App(600, 600) {
+    MainApp() : App(cinematicEngine.windowWidth, cinematicEngine.windowHeight) {
         // OpenGL flags
         glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
