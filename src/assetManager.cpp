@@ -3,46 +3,53 @@
 //
 
 #include "assetManager.hpp"
+#include <framework/objparser.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace arcader {
 
-    void AssetManager::loadTexture(const StaticAssets& name, const std::filesystem::path& filepath, GLenum internalFormat, GLint mipmaps) {
+    void
+    AssetManager::loadTexture(const StaticAssets &name, const std::filesystem::path &filepath, GLenum internalFormat,
+                              GLint mipmaps) {
         Texture<GL_TEXTURE_2D> tex;
         tex.load(internalFormat, filepath, mipmaps);
         textures[name] = std::move(tex);
     }
 
-    const Texture<GL_TEXTURE_2D>& AssetManager::getTexture(const StaticAssets& name) const {
+    const Texture<GL_TEXTURE_2D> &AssetManager::getTexture(const StaticAssets &name) const {
         auto it = textures.find(name);
-        if (it == textures.end()) throw std::runtime_error("Texture not found: " + std::to_string(static_cast<int>(name)));
+        if (it == textures.end())
+            throw std::runtime_error("Texture not found: " + std::to_string(static_cast<int>(name)));
         return it->second;
     }
 
-    void AssetManager::loadMesh(const StaticAssets& name, const std::string& filepath) {
+    void AssetManager::loadMesh(const StaticAssets &name, const std::string &filepath) {
         Mesh mesh;
         mesh.load(filepath);
         meshes[name] = std::move(mesh);
     }
 
-    void AssetManager::loadShader(const StaticAssets& name, const std::string& vertexPath, const std::string& fragmentPath) {
+    void
+    AssetManager::loadShader(const StaticAssets &name, const std::string &vertexPath, const std::string &fragmentPath) {
         Program program;
         program.load(vertexPath, fragmentPath);
         shaders[name] = std::move(program);
     }
 
-    const Mesh& AssetManager::getMesh(const StaticAssets& name) const {
+    const Mesh &AssetManager::getMesh(const StaticAssets &name) const {
         auto it = meshes.find(name);
         if (it == meshes.end()) throw std::runtime_error("Mesh not found: " + std::to_string(static_cast<int>(name)));
         return it->second;
     }
 
-    const Program& AssetManager::getShader(const StaticAssets& name) const {
+    const Program &AssetManager::getShader(const StaticAssets &name) const {
         auto it = shaders.find(name);
-        if (it == shaders.end()) throw std::runtime_error("Shader not found: " + std::to_string(static_cast<int>(name)));
+        if (it == shaders.end())
+            throw std::runtime_error("Shader not found: " + std::to_string(static_cast<int>(name)));
         return it->second;
     }
 
-    RenderableAsset AssetManager::getRenderable(const StaticAssets& name) const {
+    RenderableAsset AssetManager::getRenderable(const StaticAssets &name) const {
         auto it = renderables.find(name);
         if (it == renderables.end()) {
             throw std::runtime_error("Renderable not found: " + std::to_string(static_cast<int>(name)));
@@ -51,11 +58,11 @@ namespace arcader {
     }
 
 
-    void arcader::AssetManager::loadRenderable(const StaticAssets& name,
-                                               const std::filesystem::path& meshPath,
-                                               const std::filesystem::path& vertexShader,
-                                               const std::filesystem::path& fragmentShader,
-                                               const std::vector<std::filesystem::path>& texturePaths,
+    void arcader::AssetManager::loadRenderable(const StaticAssets &name,
+                                               const std::filesystem::path &meshPath,
+                                               const std::filesystem::path &vertexShader,
+                                               const std::filesystem::path &fragmentShader,
+                                               const std::vector<std::filesystem::path> &texturePaths,
                                                GLenum internalFormat,
                                                GLint mipmaps) {
         StaticAssets meshName = name;
@@ -66,7 +73,8 @@ namespace arcader {
 
         std::vector<StaticAssets> textureNames;
         for (size_t i = 0; i < texturePaths.size(); ++i) {
-            StaticAssets texName = static_cast<StaticAssets>(static_cast<int>(name) + static_cast<int>(i) + 1); // Example mapping
+            StaticAssets texName = static_cast<StaticAssets>(static_cast<int>(name) + static_cast<int>(i) +
+                                                             1); // Example mapping
             loadTexture(texName, texturePaths[i], internalFormat, mipmaps);
             textureNames.push_back(texName);
         }
@@ -74,12 +82,13 @@ namespace arcader {
         registerRenderable(name, meshName, shaderName, textureNames);
     }
 
-    void AssetManager::registerRenderable(const StaticAssets &name, const StaticAssets &meshName, const StaticAssets &shaderName,
+    void AssetManager::registerRenderable(const StaticAssets &name, const StaticAssets &meshName,
+                                          const StaticAssets &shaderName,
                                           const std::vector<StaticAssets> &textureNames) {
         RenderableAsset asset;
         asset.mesh = &meshes.at(meshName);
         asset.shader = &shaders.at(shaderName);
-        for (const auto &texName : textureNames) {
+        for (const auto &texName: textureNames) {
             asset.textures.push_back(&textures.at(texName));
         }
         renderables[name] = std::move(asset);
@@ -87,6 +96,48 @@ namespace arcader {
 
     bool AssetManager::hasRenderable(const StaticAssets &name) const {
         return renderables.find(name) != renderables.end();
+    }
+
+    void AssetManager::loadRenderableRT(const StaticAssets &name,
+                                        const std::string &objPath,
+                                        const std::string &vertexShaderPath,
+                                        const std::string &fragmentShaderPath,
+                                        const std::vector<std::filesystem::path> &texturePaths) {
+        // Shader erstellen
+        Program shader;
+        shader.load(vertexShaderPath, fragmentShaderPath);
+
+        // OBJ laden
+        std::vector<Mesh::VertexPTN> vertices;
+        std::vector<unsigned int> indices;
+        ObjParser::parse(objPath, vertices, indices);
+        GLuint triangleCount = indices.size() / 3;
+
+        RenderableAsset asset;
+        asset.vertices = std::move(vertices);
+        asset.indices = std::move(indices);
+        asset.triangleCount = triangleCount;
+
+        // Texturen laden
+        std::vector<Texture<GL_TEXTURE_2D>> loadedTextures;
+        for (const auto &texturePath: texturePaths) {
+            Texture<GL_TEXTURE_2D> texture;
+            texture.load(GL_SRGB8_ALPHA8, texturePath);
+            loadedTextures.push_back(std::move(texture));
+        }
+
+
+        // Als Renderable registrieren
+        shaders[name] = std::move(shader);
+        asset.shader = &shaders[name];
+        asset.mesh = nullptr;  // kein VAO/VBO
+
+        for (size_t i = 0; i < loadedTextures.size(); ++i) {
+            auto texName = static_cast<StaticAssets>(static_cast<int>(name) + static_cast<int>(i) + 1);
+            textures[texName] = std::move(loadedTextures[i]);
+            asset.textures.push_back(&textures[texName]);  // Textur-Referenz dem Renderable hinzufügen
+        }
+        renderables[name] = std::move(asset);
     }
 
 } // arcader

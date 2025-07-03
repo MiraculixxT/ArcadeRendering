@@ -15,13 +15,16 @@
 namespace arcader {
 
     struct RenderableAsset {
-        Mesh* mesh;
-        Program* shader;
-        std::vector<Texture<GL_TEXTURE_2D>*> textures;
+        Mesh *mesh;
+        Program *shader;
+        std::vector<Texture<GL_TEXTURE_2D> *> textures;
+        std::vector<Mesh::VertexPTN> vertices;
+        std::vector<unsigned int> indices;
+        GLuint triangleCount;
 
-        void render(const glm::mat4& worldToClip,
-                    const glm::vec3& position = glm::vec3(0.0f),
-                    const glm::vec3& scale = glm::vec3(1.0f)) const {
+        void render(const glm::mat4 &worldToClip,
+                    const glm::vec3 &position = glm::vec3(0.0f),
+                    const glm::vec3 &scale = glm::vec3(1.0f)) const {
             glm::mat4 model = glm::translate(glm::mat4(1.0f), position) *
                               glm::scale(glm::mat4(1.0f), scale);
             glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(model)));
@@ -62,45 +65,57 @@ namespace arcader {
         Program program;
 
     public:
-        void loadMesh(const StaticAssets& name, const std::string& filepath);
-        void loadShader(const StaticAssets& name, const std::string& vertexPath, const std::string& fragmentPath);
+        void loadMesh(const StaticAssets &name, const std::string &filepath);
 
-        void loadTexture(const StaticAssets& name, const std::filesystem::path& filepath, GLenum internalFormat = GL_SRGB8_ALPHA8, GLint mipmaps = 0);
-        const Texture<GL_TEXTURE_2D>& getTexture(const StaticAssets& name) const;
+        void loadShader(const StaticAssets &name, const std::string &vertexPath, const std::string &fragmentPath);
 
-        const Mesh& getMesh(const StaticAssets& name) const;
-        const Program& getShader(const StaticAssets& name) const;
+        void loadTexture(const StaticAssets &name, const std::filesystem::path &filepath,
+                         GLenum internalFormat = GL_SRGB8_ALPHA8, GLint mipmaps = 0);
 
-        RenderableAsset getRenderable(const StaticAssets& name) const;
-        void registerRenderable(const StaticAssets& name, const std::string& mesh, const std::string& shader, const std::vector<std::string>& textureNames);
+        const Texture<GL_TEXTURE_2D> &getTexture(const StaticAssets &name) const;
 
-        void loadRenderable(const StaticAssets& name,
-                            const std::filesystem::path& meshPath,
-                            const std::filesystem::path& vertexShader,
-                            const std::filesystem::path& fragmentShader,
-                            const std::vector<std::filesystem::path>& texturePaths,
+        const Mesh &getMesh(const StaticAssets &name) const;
+
+        const Program &getShader(const StaticAssets &name) const;
+
+        RenderableAsset getRenderable(const StaticAssets &name) const;
+
+        void registerRenderable(const StaticAssets &name, const StaticAssets &meshName,
+                                              const StaticAssets &shaderName,
+                                              const std::vector<StaticAssets> &textureNames);
+
+        void loadRenderable(const StaticAssets &name,
+                            const std::filesystem::path &meshPath,
+                            const std::filesystem::path &vertexShader,
+                            const std::filesystem::path &fragmentShader,
+                            const std::vector<std::filesystem::path> &texturePaths,
                             GLenum internalFormat = GL_SRGB8_ALPHA8,
                             GLint mipmaps = 0);
 
         bool hasRenderable(const StaticAssets &name) const;
 
-        void render(const StaticAssets& asset,
-                    const glm::mat4& worldToClip,
-                    const glm::vec3& position = glm::vec3(0.0f),
-                    const glm::vec3& scale = glm::vec3(1.0f)) const {
+        void render(const StaticAssets &asset,
+                    const glm::mat4 &worldToClip,
+                    const glm::vec3 &position = glm::vec3(0.0f),
+                    const glm::vec3 &scale = glm::vec3(1.0f)) const {
             if (!hasRenderable(asset)) return;
             renderables.at(asset).render(worldToClip, position, scale);
         }
+
+        void loadRenderableRT(const StaticAssets &name,
+                              const std::string &objPath,
+                              const std::string &vertexShaderPath,
+                              const std::string &fragmentShaderPath,
+                              const std::vector<std::filesystem::path> &texturePaths);
+
 
     private:
         std::unordered_map<StaticAssets, Mesh> meshes;
         std::unordered_map<StaticAssets, Program> shaders;
         std::unordered_map<StaticAssets, Texture<GL_TEXTURE_2D>> textures;
         std::unordered_map<StaticAssets, RenderableAsset> renderables;
-
-        void registerRenderable(const StaticAssets &name, const StaticAssets &meshName, const StaticAssets &shaderName,
-                                const std::vector<StaticAssets> &textureNames);
     };
+
 
 } // arcader
 
