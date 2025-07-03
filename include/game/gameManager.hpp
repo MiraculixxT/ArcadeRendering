@@ -6,7 +6,8 @@
 #define GAMEMANAGER_H
 #include "assetManager.hpp"
 #include "cinematicEngine.hpp"
-#include "states.hpp"
+#include "block.hpp"
+#include "entity.hpp"
 #include "framework/camera.hpp"
 #include "framework/gl/program.hpp"
 
@@ -19,6 +20,8 @@ class GameManager {
      */
     Block blocks[worldWidth][worldHeight]{};
     static constexpr int blockDimension = 16;
+
+    std::vector<Entity> entities;
 
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
@@ -38,7 +41,7 @@ public:
      * Initializes the game world by loading mesh data.
      * @param mesh Reference to the `Mesh` object to be initialized.
      */
-    void init(Mesh &mesh) const;
+    void init(Mesh &mesh);
 
     /**
      * Updates the game state.

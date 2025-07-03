@@ -5,7 +5,7 @@
 #include "game/gameManager.hpp"
 
 #include "framework/mesh.hpp"
-#include "game/states.hpp"
+#include "game/block.hpp"
 
 namespace arcader {
 std::vector<float> vertices = {
@@ -21,13 +21,17 @@ std::vector<unsigned int> indices = {
     2, 3, 0
 };
 
-void GameManager::init(Mesh &mesh) const {
+void GameManager::init(Mesh &mesh) {
     mesh.load(vertices, indices);
 
 }
 
 void GameManager::update(float deltaTime) {
-    // Update game logic here
+    // Update entities
+    for (auto &entity : entities) {
+        entity.update(deltaTime);
+    }
+
 }
 
 void GameManager::render(Camera &camera, Program &program, Mesh &mesh) {
