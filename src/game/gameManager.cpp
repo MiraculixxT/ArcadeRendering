@@ -24,6 +24,18 @@ std::vector<unsigned int> indices = {
 void GameManager::init(Mesh &mesh) {
     mesh.load(vertices, indices);
 
+    // Initilize blocks (temp, maybe doing procedural generation later)
+    for (int i = 0; i < 32; ++i) {
+        blocks[0][i] = {BlockType::STONE, StaticAssets::BLOCK_STONE};
+        blocks[1][i] = {BlockType::STONE, StaticAssets::BLOCK_STONE};
+        blocks[2][i] = {BlockType::DIRT, StaticAssets::BLOCK_DIRT};
+        blocks[3][i] = {BlockType::GRASS, StaticAssets::BLOCK_GRASS};
+    }
+
+    // Initialize player
+    entities.clear();
+    auto player = new EntityPlayer(vec2(0.0f, 6.0f), 32);
+    entities.push_back(*player);
 }
 
 void GameManager::update(float deltaTime) {
@@ -38,8 +50,8 @@ void GameManager::render(Camera &camera, Program &program, Mesh &mesh) {
     program.use();
     const mat4 projection = ortho(0.0f, static_cast<float>(renderer.windowWidth), 0.0f, static_cast<float>(renderer.windowHeight)); // 2D orthographic projection
     constexpr mat4 view = mat4(1.0f); // no view transformation, or set from camera
-    mat4 VP = projection * view;
 
+    // Render blocks
     for (int y = 0; y < worldHeight; ++y) {
         for (int x = 0; x < worldWidth; ++x) {
             auto &[type, texture] = blocks[x][y];
