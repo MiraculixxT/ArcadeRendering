@@ -50,6 +50,7 @@ namespace arcader {
         AssetManager *assets;
         Camera camera;
         LightingSystem lighting;
+        Mesh mesh;
 
         // Optional: animation interpolation helpers
     };

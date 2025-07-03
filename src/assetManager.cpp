@@ -14,6 +14,8 @@ namespace arcader {
         Texture<GL_TEXTURE_2D> tex;
         tex.load(internalFormat, filepath, mipmaps);
         textures[name] = std::move(tex);
+        Mesh mesh;
+        mesh.load(Mesh::FULLSCREEN_VERTICES, Mesh::FULLSCREEN_INDICES);
     }
 
     const Texture<GL_TEXTURE_2D> &AssetManager::getTexture(const StaticAssets &name) const {
@@ -103,11 +105,9 @@ namespace arcader {
                                         const std::string &vertexShaderPath,
                                         const std::string &fragmentShaderPath,
                                         const std::vector<std::filesystem::path> &texturePaths) {
-        // Shader erstellen
         Program shader;
         shader.load(vertexShaderPath, fragmentShaderPath);
 
-        // OBJ laden
         std::vector<Mesh::VertexPTN> vertices;
         std::vector<unsigned int> indices;
         ObjParser::parse(objPath, vertices, indices);
@@ -118,7 +118,6 @@ namespace arcader {
         asset.indices = std::move(indices);
         asset.triangleCount = triangleCount;
 
-        // Texturen laden
         std::vector<Texture<GL_TEXTURE_2D>> loadedTextures;
         for (const auto &texturePath: texturePaths) {
             Texture<GL_TEXTURE_2D> texture;
@@ -127,10 +126,8 @@ namespace arcader {
         }
 
 
-        // Als Renderable registrieren
         shaders[name] = std::move(shader);
         asset.shader = &shaders[name];
-        asset.mesh = nullptr;  // kein VAO/VBO
 
         for (size_t i = 0; i < loadedTextures.size(); ++i) {
             auto texName = static_cast<StaticAssets>(static_cast<int>(name) + static_cast<int>(i) + 1);
