@@ -119,13 +119,13 @@ namespace arcader {
             enum StaticAssets;
 
             if (!assets->hasRenderable(ARCADE_MACHINE)) {
-                assets->loadRenderable(
+                assets->loadRenderableRT(
                         ARCADE_MACHINE,
                         "assets/meshes/arcade.obj",
                         "shaders/arcade.vsh",
                         "shaders/arcade.fsh",
                         {
-                                "assets/textures/Arcade_Color.png",
+                                "assets/textures/Arcade_Color.png"
                         }
                 );
             }
