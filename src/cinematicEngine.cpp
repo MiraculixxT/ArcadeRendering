@@ -48,6 +48,10 @@ namespace arcader {
         return state;
     }
 
+    GameManager* CinematicEngine::getGameManager() {
+        return gameManager;
+    }
+
     void CinematicEngine::updateScene(int state, float dt) {
         // Implement scene-specific updates here
         switch (state) {

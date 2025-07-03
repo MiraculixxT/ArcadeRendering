@@ -9,6 +9,7 @@
 #include "assetManager.hpp"
 #include <memory>
 #include "lightingSystem.hpp"
+#include "game/gameManager.hpp"
 
 /**
  * @brief Controls cinematic sequences including timed camera movement and rendering transitions.
@@ -36,6 +37,8 @@ namespace arcader {
 
         void renderArcade();
 
+        GameManager* getGameManager();
+
         const int windowWidth = 600;
         const int windowHeight = 600;
 
@@ -50,6 +53,7 @@ namespace arcader {
         AssetManager *assets;
         Camera camera;
         LightingSystem lighting;
+        GameManager *gameManager;
 
         // Optional: animation interpolation helpers
     };
