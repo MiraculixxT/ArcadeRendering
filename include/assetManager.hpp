@@ -50,6 +50,8 @@ namespace arcader {
         BLOCK_STONE,
         BLOCK_WATER,
         BLOCK_AIR,
+        ENTITY_PLAYER,
+        ENTITY_TREE,
 
         ARCADE_MACHINE
     };
