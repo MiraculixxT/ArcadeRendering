@@ -2,12 +2,12 @@
 // Created by julius on 6/26/25.
 //
 
-#include "game/states.hpp"
+#include "game/block.hpp"
 
 #include "assetManager.hpp"
 
 namespace arcader {
-std::vector<BlockType> StateHandler::getBlockTypes() {
+std::vector<BlockType> BlockStates::getBlockTypes() {
     return std::vector{
         BlockType::GRASS,
         BlockType::DIRT,
@@ -19,7 +19,7 @@ std::vector<BlockType> StateHandler::getBlockTypes() {
     };
 }
 
-StaticAssets StateHandler::getTextureToFromType(const BlockType &type) {
+StaticAssets BlockStates::getTextureToFromType(const BlockType &type) {
     switch (type) {
         case BlockType::GRASS: return StaticAssets::BLOCK_GRASS;
         case BlockType::DIRT: return StaticAssets::BLOCK_DIRT;

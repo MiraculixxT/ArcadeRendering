@@ -33,7 +33,7 @@ struct Block {
     StaticAssets texture;
 };
 
-class StateHandler {
+class BlockStates {
     /**
      * Retrieves all available block types in the game.
      * @return A vector containing all block types.
