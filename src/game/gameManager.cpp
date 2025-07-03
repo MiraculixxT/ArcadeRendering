@@ -67,5 +67,17 @@ void GameManager::render(Camera &camera, Program &program, Mesh &mesh) {
             mesh.draw(); // draws the quad
         }
     }
+
+    // Render entities
+    for (const auto &entity : entities) {
+        mat4 model = translate(mat4(1.0f), vec3(entity.position, 0.0f));
+        model = scale(model, vec3(entity.getDimension(), entity.getDimension(), 1.0f));
+        mat4 mvp = projection * view * model;
+
+        program.set("u_MVP", mvp);
+        GLuint texID = assets.getTexture(entity.getTexture()).handle;
+        glBindTexture(GL_TEXTURE_2D, texID);
+        entity.render(mvp, assets); // Render the entity
+    }
 }
 } // arcader
