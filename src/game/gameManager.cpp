@@ -81,4 +81,11 @@ void GameManager::render(Camera &camera, Program &program, Mesh &mesh) {
         entity->render(mvp, assets); // Render the entity
     }
 }
+
+void GameManager::keyCallback(Key key, Action action, Modifier modifier) {
+    auto sKey = debugKeyToString(key);
+    auto sAction = debugActionToString(action);
+    auto sModifier = debugModToString(modifier);
+    printf("Key %s \tAction %s \tMod %s\n", sKey.c_str(), sAction.c_str(), sModifier.c_str());
+}
 } // arcader

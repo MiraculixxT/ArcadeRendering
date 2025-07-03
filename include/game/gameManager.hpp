@@ -8,6 +8,7 @@
 #include "cinematicEngine.hpp"
 #include "block.hpp"
 #include "entity.hpp"
+#include "framework/app.hpp"
 #include "framework/camera.hpp"
 #include "framework/gl/program.hpp"
 
@@ -56,6 +57,48 @@ public:
      * @param mesh Reference to the mesh object
      */
     void render(Camera &camera, Program &program, Mesh &mesh);
+
+    /**
+     * Redirection for all key inputs for player interaction.
+     * @param key pressed key
+     * @param action press or release
+     * @param modifier modifier keys (shift, ctrl, alt)
+     */
+    void keyCallback(Key key, Action action, Modifier modifier);
+
+
+    static std::string debugKeyToString(Key key) {
+        switch (key) {
+            case Key::W: return "W";
+            case Key::D: return "D";
+            case Key::LEFT: return "LEFT";
+            case Key::RIGHT: return "RIGHT";
+            case Key::E: return "E";
+
+            default: return "Unknown";
+        }
+    }
+
+
+    static std::string debugActionToString(Action action) {
+        switch (action) {
+            case Action::RELEASE: return "RELEASE";
+            case Action::PRESS: return "PRESS";
+            case Action::REPEAT: return "REPEAT";
+            default: return "UNDEFINED_ACTION";
+        }
+    }
+
+    static std::string debugModToString(Modifier modifier) {
+        std::string result;
+        result += "-";
+        if (modifier >= Modifier::SHIFT) result += "SHIFT|";
+        if (modifier >= Modifier::CTRL) result += "CTRL|";
+        if (modifier >= Modifier::ALT) result += "ALT|";
+        if (modifier >= Modifier::SUPER) result += "SUPER|";
+        return result.substr(0, result.size() - 1); // Remove trailing '|'
+
+    }
 };
 } // arcader
 
