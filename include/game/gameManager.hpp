@@ -21,7 +21,7 @@ class GameManager {
     Block blocks[worldWidth][worldHeight]{};
     static constexpr int blockDimension = 16;
 
-    std::vector<Entity> entities;
+    std::vector<std::unique_ptr<Entity>> entities;
 
     std::vector<float> vertices;
     std::vector<unsigned int> indices;

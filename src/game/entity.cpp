@@ -5,7 +5,7 @@
 #include "game/entity.hpp"
 
 namespace arcader {
-
+/*
 StaticAssets Entity::getTextureToFromType(const EntityType &type) {
     switch (type) {
         case EntityType::PLAYER: return StaticAssets::ENTITY_PLAYER;
@@ -14,6 +14,7 @@ StaticAssets Entity::getTextureToFromType(const EntityType &type) {
         default: return StaticAssets::MISSING_TEXTURE;
     }
 }
+*/
 
 void EntityPlayer::update(float deltaTime) {
     // Update position based on velocity and direction

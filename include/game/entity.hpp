@@ -48,7 +48,14 @@ public:
     virtual StaticAssets getTexture() const { return texture; }
     virtual int getDimension() const { return dimension; }
 
-    static StaticAssets getTextureToFromType(const EntityType& type);
+    static StaticAssets getTextureToFromType(const EntityType& type) {
+        switch (type) {
+            case EntityType::PLAYER: return StaticAssets::ENTITY_PLAYER;
+            case EntityType::TREE: return StaticAssets::ENTITY_TREE;
+
+            default: return StaticAssets::MISSING_TEXTURE;
+        }
+    };
 };
 
 
