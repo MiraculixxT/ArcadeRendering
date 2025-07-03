@@ -5,6 +5,8 @@
 #include <glm/gtc/constants.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/transform.hpp>
+
+#include "game/gameManager.hpp"
 using namespace glm;
 
 #include <framework/app.hpp>
@@ -24,6 +26,7 @@ struct MainApp : public App {
 private:
     AssetManager assetManager;
     CinematicEngine cinematicEngine{&assetManager};
+    GameManager gameManager{assetManager, cinematicEngine};
 
 public:
 
@@ -44,6 +47,13 @@ public:
         if (key == Key::ESC && action == Action::PRESS) App::close();
         // Toggle GUI with COMMA
         if (key == Key::COMMA && action == Action::PRESS) App::imguiEnabled = !App::imguiEnabled;
+
+        switch (cinematicEngine.getState()) {
+            case 3: // game state
+                gameManager.keyCallback(key, action, modifier);
+                break;
+            default: nullptr;
+        }
     }
 
 
@@ -64,6 +74,8 @@ public:
     }
 
     void buildImGui() override {
+        ImGui::StatisticsWindow(delta, resolution);
+
         ImGui::Begin("Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
         ImGui::Text("Reserved for later debugging");
         int currentState = cinematicEngine.getState();
