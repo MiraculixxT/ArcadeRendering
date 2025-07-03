@@ -80,6 +80,15 @@ public:
         ImGui::Text("Reserved for later debugging");
         int currentState = cinematicEngine.getState();
         ImGui::SliderInt("State", &currentState, 0, 5);
+
+        if( ImGui::Button("Next State")) {
+            cinematicEngine.setState(currentState+1);
+        }
+
+        if (ImGui::Button("Previous State")) {
+            cinematicEngine.setState(currentState-1);
+        }
+
         ImGui::End();
     }
 };
