@@ -14,7 +14,7 @@ namespace arcader {
             : state(0), timer(0.0f), assets(assets), camera() {
 
         lighting.init(
-                glm::vec3(0.2f),               // ambientColor
+                glm::vec3(0.05f),               // ambientColor
                 glm::vec3(-0.5f, -1.0f, -0.3f),// lightDir
                 glm::vec3(1.0f)                // lightColor
         );
@@ -51,16 +51,16 @@ namespace arcader {
     void CinematicEngine::updateScene(int state, float dt) {
         // Implement scene-specific updates here
         switch (state) {
-            case 0:
-            {
+            case 0: {
                 if (timer < 5.0f) {
                     // Light is off
                     lighting.update(glm::vec3(-0.0f, 1.0f, -0.0f), glm::vec3(0.0f));
                 } else if (timer < 12.0f) {
-                    // Flickering light (unstable)
-                    float flicker = static_cast<float>((rand() % 100) < 50); // Randomly on/off
-                    float intensity = flicker * (0.4f + 0.6f * static_cast<float>(rand()) / RAND_MAX); // random 0.4 to 1.0
-                    glm::vec3 lightDir = glm::normalize(glm::vec3(cos(timer * 2.0f), -1.0f, sin(timer * 2.0f)));
+                    // Light flickering starts
+                    float noise = static_cast<float>((rand() % 100) < 15); // 15% chance of flicker
+                    float intensity = noise * (0.5f + 0.5f * static_cast<float>(rand()) / RAND_MAX);
+
+                    glm::vec3 lightDir = glm::normalize(glm::vec3(cos(timer * 1.5f), -1.0f, sin(timer * 1.5f)));
                     lighting.update(glm::vec3(-0.0f, 1.0f, -0.0f), glm::vec3(intensity));
                 } else {
                     // Transition to next state
@@ -68,7 +68,7 @@ namespace arcader {
 
                 }
             }
-            break;
+                break;
             case 1:
                 // light flickering stops and camera starts moving
                 break;
@@ -110,7 +110,12 @@ namespace arcader {
 
     void CinematicEngine::renderArcade() {
         camera.resize(1.0f); // Prevent division by zero
-        camera.worldPosition = {0.0f, 3.0f, 3.0f};
+        float angle = timer * 0.15f;
+        camera.worldPosition = {
+                5.0f * cos(angle),
+                3.0f,
+                5.0f * sin(angle)
+        };
         camera.target = {0.0f, 0.0f, 0.0f};
         camera.update();
 
@@ -119,7 +124,7 @@ namespace arcader {
             enum StaticAssets;
 
             if (!assets->hasRenderable(ARCADE_MACHINE)) {
-                assets->loadRenderableRT(
+                assets->loadRenderable(
                         ARCADE_MACHINE,
                         "assets/meshes/arcade.obj",
                         "shaders/arcade.vsh",
@@ -136,7 +141,7 @@ namespace arcader {
             assets->render(
                     ARCADE_MACHINE,
                     camera.projectionMatrix * camera.viewMatrix,
-                    glm::vec3(-1.5f, -1.0f, 0.0f), // linke Maschine
+                    glm::vec3(-2.0f, -1.0f, 0.0f), // linke Maschine
                     glm::vec3(0.5f)
             );
 
@@ -150,8 +155,29 @@ namespace arcader {
             assets->render(
                     ARCADE_MACHINE,
                     camera.projectionMatrix * camera.viewMatrix,
-                    glm::vec3(1.5f, -1.0f, 0.0f), // rechte Maschine
+                    glm::vec3(2.0f, -1.0f, 0.0f), // rechte Maschine
                     glm::vec3(0.5f)
+            );
+
+            if (!assets->hasRenderable(ROOM)) {
+                assets->loadRenderable(
+                        ROOM,
+                        "assets/meshes/newroom.obj",
+                        "shaders/room.vsh",
+                        "shaders/room.fsh",
+                        {
+                                "assets/textures/room_atlas.png",
+                        }
+                );
+            }
+
+            Program &roomShader = const_cast<Program &>(assets->getShader(ROOM));
+            lighting.bindToShader(roomShader);
+            assets->render(
+                    ROOM,
+                    camera.projectionMatrix * camera.viewMatrix,
+                    glm::vec3(-5.0f, -1.0f, 11.0f), // Room center
+                    glm::vec3(0.06f) // Scale
             );
         }
     }

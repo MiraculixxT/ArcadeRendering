@@ -14,8 +14,6 @@ namespace arcader {
         Texture<GL_TEXTURE_2D> tex;
         tex.load(internalFormat, filepath, mipmaps);
         textures[name] = std::move(tex);
-        Mesh mesh;
-        mesh.load(Mesh::FULLSCREEN_VERTICES, Mesh::FULLSCREEN_INDICES);
     }
 
     const Texture<GL_TEXTURE_2D> &AssetManager::getTexture(const StaticAssets &name) const {
@@ -26,16 +24,16 @@ namespace arcader {
     }
 
     void AssetManager::loadMesh(const StaticAssets &name, const std::string &filepath) {
-        Mesh mesh;
-        mesh.load(filepath);
-        meshes[name] = std::move(mesh);
+        Mesh m;
+        m.load(filepath);
+        meshes[name] = std::move(m);
     }
 
     void
     AssetManager::loadShader(const StaticAssets &name, const std::string &vertexPath, const std::string &fragmentPath) {
-        Program program;
-        program.load(vertexPath, fragmentPath);
-        shaders[name] = std::move(program);
+        Program p;
+        p.load(vertexPath, fragmentPath);
+        shaders[name] = std::move(p);
     }
 
     const Mesh &AssetManager::getMesh(const StaticAssets &name) const {
@@ -75,13 +73,14 @@ namespace arcader {
 
         std::vector<StaticAssets> textureNames;
         for (size_t i = 0; i < texturePaths.size(); ++i) {
-            StaticAssets texName = static_cast<StaticAssets>(static_cast<int>(name) + static_cast<int>(i) +
+            auto texName = static_cast<StaticAssets>(static_cast<int>(name) + static_cast<int>(i) +
                                                              1); // Example mapping
             loadTexture(texName, texturePaths[i], internalFormat, mipmaps);
             textureNames.push_back(texName);
         }
 
         registerRenderable(name, meshName, shaderName, textureNames);
+
     }
 
     void AssetManager::registerRenderable(const StaticAssets &name, const StaticAssets &meshName,
@@ -100,41 +99,5 @@ namespace arcader {
         return renderables.find(name) != renderables.end();
     }
 
-    void AssetManager::loadRenderableRT(const StaticAssets &name,
-                                        const std::string &objPath,
-                                        const std::string &vertexShaderPath,
-                                        const std::string &fragmentShaderPath,
-                                        const std::vector<std::filesystem::path> &texturePaths) {
-        Program shader;
-        shader.load(vertexShaderPath, fragmentShaderPath);
-
-        std::vector<Mesh::VertexPTN> vertices;
-        std::vector<unsigned int> indices;
-        ObjParser::parse(objPath, vertices, indices);
-        GLuint triangleCount = indices.size() / 3;
-
-        RenderableAsset asset;
-        asset.vertices = std::move(vertices);
-        asset.indices = std::move(indices);
-        asset.triangleCount = triangleCount;
-
-        std::vector<Texture<GL_TEXTURE_2D>> loadedTextures;
-        for (const auto &texturePath: texturePaths) {
-            Texture<GL_TEXTURE_2D> texture;
-            texture.load(GL_SRGB8_ALPHA8, texturePath);
-            loadedTextures.push_back(std::move(texture));
-        }
-
-
-        shaders[name] = std::move(shader);
-        asset.shader = &shaders[name];
-
-        for (size_t i = 0; i < loadedTextures.size(); ++i) {
-            auto texName = static_cast<StaticAssets>(static_cast<int>(name) + static_cast<int>(i) + 1);
-            textures[texName] = std::move(loadedTextures[i]);
-            asset.textures.push_back(&textures[texName]);  // Textur-Referenz dem Renderable hinzufügen
-        }
-        renderables[name] = std::move(asset);
-    }
 
 } // arcader

@@ -40,6 +40,10 @@ namespace arcader {
             }
 
             mesh->draw();
+            glBindVertexArray(0);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
         }
     };
 
@@ -56,12 +60,12 @@ namespace arcader {
         ENTITY_PLAYER,
         ENTITY_TREE,
 
-        ARCADE_MACHINE
+        ARCADE_MACHINE,
+        ROOM
     };
 
     class AssetManager {
 
-        Mesh mesh;
         Program program;
 
     public:
