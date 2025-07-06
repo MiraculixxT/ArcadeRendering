@@ -17,14 +17,16 @@ void main() {
     vec3 viewDir = normalize(fragViewDir);
     vec3 lightDir = normalize(uLightDirection);
 
-    vec3 texColor = texture(tex0, fragTexCoord).rgb;
+    vec4 texColor = texture(tex0, fragTexCoord);
+    if (texColor.a < 0.1)
+        discard;
 
     // Ambient
-    vec3 ambient = uAmbientColor * texColor;
+    vec3 ambient = uAmbientColor * texColor.rgb;
 
     // Diffuse
     float diff = max(dot(normal, lightDir), 0.0);
-    vec3 diffuse = diff * uLightColor * texColor;
+    vec3 diffuse = diff * uLightColor * texColor.rgb;
 
-    fragColor = vec4(ambient + diffuse, 1.0);
+    fragColor = vec4(ambient + diffuse, texColor.a);
 }

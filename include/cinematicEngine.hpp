@@ -36,6 +36,10 @@ namespace arcader {
 
         void renderArcade();
 
+        GLuint loadCubemap(const std::vector<std::string>& faces);
+        void initSkybox();
+        void renderSkybox();
+
         const int windowWidth = 600;
         const int windowHeight = 600;
 
@@ -46,6 +50,11 @@ namespace arcader {
 
         int state = 0;
         float timer = 0.0f;
+
+        // Skybox rendering members
+        Program skyboxShader;
+        GLuint skyboxVAO;
+        GLuint cubemapTexture;
 
         AssetManager *assets;
         Camera camera;

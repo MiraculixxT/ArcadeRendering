@@ -18,6 +18,10 @@ namespace arcader {
                 glm::vec3(-0.5f, -1.0f, -0.3f),// lightDir
                 glm::vec3(1.0f)                // lightColor
         );
+
+        //Skybox
+        initSkybox();
+
     }
 
     void CinematicEngine::update(float deltaTime) {
@@ -109,14 +113,16 @@ namespace arcader {
     }
 
     void CinematicEngine::renderArcade() {
+        renderSkybox();
+
         camera.resize(1.0f); // Prevent division by zero
         float angle = timer * 0.15f;
         camera.worldPosition = {
                 5.0f * cos(angle),
-                3.0f,
+                63.0f,
                 5.0f * sin(angle)
         };
-        camera.target = {0.0f, 0.0f, 0.0f};
+        camera.target = {0.0f, 62.0f, 0.0f};
         camera.update();
 
         if (assets) {
@@ -141,21 +147,21 @@ namespace arcader {
             assets->render(
                     ARCADE_MACHINE,
                     camera.projectionMatrix * camera.viewMatrix,
-                    glm::vec3(-2.0f, -1.0f, 0.0f), // linke Maschine
+                    glm::vec3(-2.0f, 60.0f, 0.0f), // linke Maschine
                     glm::vec3(0.5f)
             );
 
             assets->render(
                     ARCADE_MACHINE,
                     camera.projectionMatrix * camera.viewMatrix,
-                    glm::vec3(0.0f, -1.0f, 0.0f), // mittlere Maschine
+                    glm::vec3(0.0f, 60.0f, 0.0f), // mittlere Maschine
                     glm::vec3(0.5f)
             );
 
             assets->render(
                     ARCADE_MACHINE,
                     camera.projectionMatrix * camera.viewMatrix,
-                    glm::vec3(2.0f, -1.0f, 0.0f), // rechte Maschine
+                    glm::vec3(2.0f, 60.0f, 0.0f), // rechte Maschine
                     glm::vec3(0.5f)
             );
 
@@ -163,8 +169,8 @@ namespace arcader {
                 assets->loadRenderable(
                         ROOM,
                         "assets/meshes/newroom.obj",
-                        "shaders/room.vsh",
-                        "shaders/room.fsh",
+                        "shaders/arcade.vsh",
+                        "shaders/arcade.fsh",
                         {
                                 "assets/textures/room_atlas.png",
                         }
@@ -176,9 +182,126 @@ namespace arcader {
             assets->render(
                     ROOM,
                     camera.projectionMatrix * camera.viewMatrix,
-                    glm::vec3(-5.0f, -1.0f, 11.0f), // Room center
+                    glm::vec3(-5.0f, 60.0f, 11.0f), // Room center
                     glm::vec3(0.06f) // Scale
             );
+
         }
+    }
+
+
+    GLuint CinematicEngine::loadCubemap(const std::vector<std::string>& faces) {
+        GLuint textureID;
+        glGenTextures(1, &textureID);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+        int width, height, nrChannels;
+        for (unsigned int i = 0; i < faces.size(); i++) {
+            unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
+            if (data) {
+                glTexImage2D(
+                        GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+                        0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
+                );
+                stbi_image_free(data);
+            } else {
+                std::cerr << "Failed to load cubemap texture at: " << faces[i] << std::endl;
+                stbi_image_free(data);
+            }
+        }
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+        return textureID;
+    }
+
+    void CinematicEngine::initSkybox() {
+        float skyboxVertices[] = {
+                // Positions
+                -1.0f,  1.0f, -1.0f,
+                -1.0f, -1.0f, -1.0f,
+                1.0f, -1.0f, -1.0f,
+                1.0f, -1.0f, -1.0f,
+                1.0f,  1.0f, -1.0f,
+                -1.0f,  1.0f, -1.0f,
+
+                -1.0f, -1.0f,  1.0f,
+                -1.0f, -1.0f, -1.0f,
+                -1.0f,  1.0f, -1.0f,
+                -1.0f,  1.0f, -1.0f,
+                -1.0f,  1.0f,  1.0f,
+                -1.0f, -1.0f,  1.0f,
+
+                1.0f, -1.0f, -1.0f,
+                1.0f, -1.0f,  1.0f,
+                1.0f,  1.0f,  1.0f,
+                1.0f,  1.0f,  1.0f,
+                1.0f,  1.0f, -1.0f,
+                1.0f, -1.0f, -1.0f,
+
+                -1.0f, -1.0f,  1.0f,
+                -1.0f,  1.0f,  1.0f,
+                1.0f,  1.0f,  1.0f,
+                1.0f,  1.0f,  1.0f,
+                1.0f, -1.0f,  1.0f,
+                -1.0f, -1.0f,  1.0f,
+
+                -1.0f,  1.0f, -1.0f,
+                1.0f,  1.0f, -1.0f,
+                1.0f,  1.0f,  1.0f,
+                1.0f,  1.0f,  1.0f,
+                -1.0f,  1.0f,  1.0f,
+                -1.0f,  1.0f, -1.0f,
+
+                -1.0f, -1.0f, -1.0f,
+                -1.0f, -1.0f,  1.0f,
+                1.0f, -1.0f, -1.0f,
+                1.0f, -1.0f, -1.0f,
+                -1.0f, -1.0f,  1.0f,
+                1.0f, -1.0f,  1.0f
+        };
+
+        std::vector<std::string> faces = {
+                "assets/textures/sky/Box_Right.png",
+                "assets/textures/sky/Box_Left.png",
+                "assets/textures/sky/Box_Top.png",
+                "assets/textures/sky/Box_Bottom.png",
+                "assets/textures/sky/Box_Front.png",
+                "assets/textures/sky/Box_Back.png"
+        };
+
+        GLuint skyboxVAO, skyboxVBO;
+        glGenVertexArrays(1, &skyboxVAO);
+        glGenBuffers(1, &skyboxVBO);
+        glBindVertexArray(skyboxVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+
+        GLuint cubemapTexture;
+
+        cubemapTexture = loadCubemap(faces);
+
+        skyboxShader.load("shaders/skybox.vsh", "shaders/skybox.fsh");
+        this->skyboxVAO = skyboxVAO;
+        this->cubemapTexture = cubemapTexture;
+    }
+
+    void CinematicEngine::renderSkybox() {
+        glDepthFunc(GL_LEQUAL);
+        skyboxShader.use();
+        glm::mat4 view = glm::mat4(glm::mat3(camera.viewMatrix));
+        skyboxShader.set("uView", view);
+        skyboxShader.set("uProjection", camera.projectionMatrix);
+
+        glBindVertexArray(skyboxVAO);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glBindVertexArray(0);
+        glDepthFunc(GL_LESS);
     }
 }
