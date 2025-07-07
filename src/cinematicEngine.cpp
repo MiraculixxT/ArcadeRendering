@@ -14,9 +14,9 @@ namespace arcader {
             : state(0), timer(0.0f), assets(assets), camera() {
 
         lighting.init(
-                glm::vec3(0.05f),               // ambientColor
-                glm::vec3(-0.5f, -1.0f, -0.3f),// lightDir
-                glm::vec3(1.0f)                // lightColor
+                glm::vec3(0.02f, 0.02f, 0.05f),             // ambientColor (dunkelblau)
+                glm::vec3(-0.2f, -1.0f, -0.1f),             // lightDir (flach und schwach)
+                glm::vec3(0.1f, 0.2f, 0.4f)                 // lightColor (kühles Blau)
         );
 
         //Skybox
@@ -56,23 +56,42 @@ namespace arcader {
         // Implement scene-specific updates here
         switch (state) {
             case 0: {
-                if (timer < 5.0f) {
-                    // Light is off
-                    lighting.update(glm::vec3(-0.0f, 1.0f, -0.0f), glm::vec3(0.0f));
+                lighting.update(glm::vec3(-0.0f, 1.0f, -0.0f), glm::vec3(0.1f, 0.15f, 0.25f)); // static light direction and color
+
+                if (timer < 7.0f) {
+                    // all lights off
+                    for (int i = 0; i < lighting.getPointLights().size(); ++i) {
+                        lighting.setPointLightIntensity(i, 0.0f);
+                    }
                 } else if (timer < 12.0f) {
-                    // Light flickering starts
-                    float noise = static_cast<float>((rand() % 100) < 15); // 15% chance of flicker
-                    float intensity = noise * (0.5f + 0.5f * static_cast<float>(rand()) / RAND_MAX);
+                    // light flickering
+                    for (int i = 0; i < lighting.getPointLights().size(); ++i) {
+                        float activationTime = 7.0f + i * 2.0f;
+                        if (timer < activationTime) {
+                            lighting.setPointLightIntensity(i, 0.0f);
+                        } else if (timer < activationTime + 2.0f) {
+                            float t = timer * 8.0f + i * 3.0f;
+                            float flicker = (sin(t) > 0.6f) ? 2.5f :
+                                            (sin(t * 0.7f) > 0.3f) ? 1.2f :
+                                            (rand() % 100 < 10) ? 0.5f : 0.0f;
+                            lighting.setPointLightIntensity(i, flicker);
+                        } else {
+                            lighting.setPointLightIntensity(i, 2.5f);
+                        }
+                    }
 
-                    glm::vec3 lightDir = glm::normalize(glm::vec3(cos(timer * 1.5f), -1.0f, sin(timer * 1.5f)));
-                    lighting.update(glm::vec3(-0.0f, 1.0f, -0.0f), glm::vec3(intensity));
+                    // if all lights are on for a while, switch to next state
+                    if (timer > 7.0f + lighting.getPointLights().size() * 2.0f) {
+                        setState(1);
+                    }
                 } else {
-                    // Transition to next state
+                    // Stabil
+                    for (int i = 0; i < lighting.getPointLights().size(); ++i) {
+                        lighting.setPointLightIntensity(i, 2.5f);
+                    }
                     setState(1);
-
                 }
-            }
-                break;
+            } break;
             case 1:
                 // light flickering stops and camera starts moving
                 break;
@@ -94,8 +113,6 @@ namespace arcader {
                 renderArcade();
                 break;
             case 1:
-                // Render static camera with light flickering
-                lighting.update(glm::vec3(-0.0f, 1.0f, 0.0f), glm::vec3(1.0f));
 
                 renderArcade();
 
@@ -125,6 +142,27 @@ namespace arcader {
         camera.target = {0.0f, 62.0f, 0.0f};
         camera.update();
 
+        if (lighting.getPointLights().empty()) {
+            lighting.addPointLight(
+                glm::vec3(0.0f, 63.0f, 2.0f),
+                glm::vec3(1.0f, 0.85f, 0.6f),
+                0.0f,
+                5.0f
+            );
+            lighting.addPointLight(
+                glm::vec3(-4.0f, 63.0f, 2.0f),
+                glm::vec3(1.0f, 0.85f, 0.6f),
+                0.0f,
+                5.0f
+            );
+            lighting.addPointLight(
+                glm::vec3(4.0f, 63.0f, 2.0f),
+                glm::vec3(1.0f, 0.85f, 0.6f),
+                0.0f,
+                5.0f
+            );
+        }
+
         if (assets) {
             using
             enum StaticAssets;
@@ -143,6 +181,7 @@ namespace arcader {
 
             Program &arcadeShader = const_cast<Program &>(assets->getShader(ARCADE_MACHINE));
             lighting.bindToShader(arcadeShader);
+            lighting.bindPointLightsToShader(arcadeShader);
 
             assets->render(
                     ARCADE_MACHINE,
@@ -179,6 +218,7 @@ namespace arcader {
 
             Program &roomShader = const_cast<Program &>(assets->getShader(ROOM));
             lighting.bindToShader(roomShader);
+            lighting.bindPointLightsToShader(roomShader);
             assets->render(
                     ROOM,
                     camera.projectionMatrix * camera.viewMatrix,

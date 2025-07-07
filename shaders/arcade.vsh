@@ -11,9 +11,11 @@ uniform vec3 uCameraPos;
 out vec3 fragNormal;
 out vec3 fragViewDir;
 out vec2 fragTexCoord;
+out vec3 fragWorldPos;
 
 void main() {
     vec4 worldPos = uModelMatrix * vec4(position, 1.0);
+    fragWorldPos = worldPos.xyz;
     fragNormal = mat3(transpose(inverse(uModelMatrix))) * normal;
     fragViewDir = normalize(uCameraPos - worldPos.xyz);
     fragTexCoord = texCoord;
