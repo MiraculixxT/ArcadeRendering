@@ -66,6 +66,7 @@ namespace arcader {
                 } else if (timer < 12.0f) {
                     // light flickering
                     for (int i = 0; i < lighting.getPointLights().size(); ++i) {
+                        // random arcade, value between 0 and number of lights
                         float activationTime = 7.0f + i * 2.0f;
                         if (timer < activationTime) {
                             lighting.setPointLightIntensity(i, 0.0f);
@@ -85,15 +86,13 @@ namespace arcader {
                         setState(1);
                     }
                 } else {
-                    // Stabil
-                    for (int i = 0; i < lighting.getPointLights().size(); ++i) {
-                        lighting.setPointLightIntensity(i, 2.5f);
-                    }
                     setState(1);
                 }
             } break;
             case 1:
-                // light flickering stops and camera starts moving
+                for (int i = 0; i < lighting.getPointLights().size(); ++i) {
+                    lighting.setPointLightIntensity(i, 2.5f);
+                }
                 break;
             case 2:
                 // ingame
@@ -132,35 +131,27 @@ namespace arcader {
     void CinematicEngine::renderArcade() {
         renderSkybox();
 
-        camera.resize(1.0f); // Prevent division by zero
-        float angle = timer * 0.15f;
-        camera.worldPosition = {
-                5.0f * cos(angle),
-                63.0f,
-                5.0f * sin(angle)
-        };
-        camera.target = {0.0f, 62.0f, 0.0f};
+        camera.resize(static_cast<float>(windowWidth) / windowHeight);
+        camera.worldPosition = {0.0f, 61.0f, 10.0f};
+        camera.target = {0.0f, 60.0f, 0.0f};
         camera.update();
 
+        // place point lights
         if (lighting.getPointLights().empty()) {
-            lighting.addPointLight(
-                glm::vec3(0.0f, 63.0f, 2.0f),
-                glm::vec3(1.0f, 0.85f, 0.6f),
-                0.0f,
-                5.0f
-            );
-            lighting.addPointLight(
-                glm::vec3(-4.0f, 63.0f, 2.0f),
-                glm::vec3(1.0f, 0.85f, 0.6f),
-                0.0f,
-                5.0f
-            );
-            lighting.addPointLight(
-                glm::vec3(4.0f, 63.0f, 2.0f),
-                glm::vec3(1.0f, 0.85f, 0.6f),
-                0.0f,
-                5.0f
-            );
+            int y = 2;
+            for (int i = 0; i < 3; ++i) {
+                int x = -4;
+                for (int j = 0; j < 3; ++j) {
+                    lighting.addPointLight(
+                            glm::vec3(x, 63.0f, y),
+                            glm::vec3(1.0f, 0.85f, 0.6f),
+                            0.0f,
+                            5.0f
+                    );
+                    x += 4;
+                }
+                y += 4;
+            }
         }
 
         if (assets) {
@@ -186,23 +177,43 @@ namespace arcader {
             assets->render(
                     ARCADE_MACHINE,
                     camera.projectionMatrix * camera.viewMatrix,
-                    glm::vec3(-2.0f, 60.0f, 0.0f), // linke Maschine
-                    glm::vec3(0.5f)
-            );
-
-            assets->render(
-                    ARCADE_MACHINE,
-                    camera.projectionMatrix * camera.viewMatrix,
                     glm::vec3(0.0f, 60.0f, 0.0f), // mittlere Maschine
                     glm::vec3(0.5f)
             );
 
-            assets->render(
-                    ARCADE_MACHINE,
-                    camera.projectionMatrix * camera.viewMatrix,
-                    glm::vec3(2.0f, 60.0f, 0.0f), // rechte Maschine
-                    glm::vec3(0.5f)
-            );
+            int x = 0;
+            for (int i = 0; i < 3; ++i) {
+
+                assets->render(
+                        ARCADE_MACHINE,
+                        camera.projectionMatrix * camera.viewMatrix,
+                        glm::vec3(-2.0f, 60.0f, x), // linke Maschine
+                        glm::vec3(0.5f)
+                );
+
+                assets->render(
+                        ARCADE_MACHINE,
+                        camera.projectionMatrix * camera.viewMatrix,
+                        glm::vec3(2.0f, 60.0f, x), // rechte Maschine
+                        glm::vec3(0.5f)
+                );
+
+                assets->render(
+                        ARCADE_MACHINE,
+                        camera.projectionMatrix * camera.viewMatrix,
+                        glm::vec3(-4.0f, 60.0f, x), // linke Maschine
+                        glm::vec3(0.5f)
+                );
+
+                assets->render(
+                        ARCADE_MACHINE,
+                        camera.projectionMatrix * camera.viewMatrix,
+                        glm::vec3(4.0f, 60.0f, x), // rechte Maschine
+                        glm::vec3(0.5f)
+                );
+
+                x+=4;
+            }
 
             if (!assets->hasRenderable(ROOM)) {
                 assets->loadRenderable(

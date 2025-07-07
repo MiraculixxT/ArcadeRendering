@@ -40,8 +40,8 @@ namespace arcader {
         void initSkybox();
         void renderSkybox();
 
-        const int windowWidth = 600;
-        const int windowHeight = 600;
+        const int windowWidth = 1280;
+        const int windowHeight = 720;
 
     private:
         void updateScene(int state, float dt);

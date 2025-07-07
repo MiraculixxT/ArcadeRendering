@@ -30,7 +30,7 @@ private:
 
 public:
 
-    MainApp() : App(600, 600) {
+    MainApp() : App(1280, 720) {
         // OpenGL flags
         glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
