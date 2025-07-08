@@ -104,20 +104,28 @@ void GameManager::renderDebug(Camera& camera) {
     mesh.draw();
 }
 
+vec2 offset = vec2(0.0f, 0.0f);
+
 void GameManager::render(Camera &camera) {
     const mat4& projection = camera.projectionMatrix;
     const mat4& view = camera.viewMatrix;
 
     // Camera
+    const float relative = static_cast<float>(*screenWidth) / static_cast<float>(*screenHeight);
+    const float relativeOffset = relative * worldWidth;
     camera.projectionMatrix = ortho(
-    0.0f, static_cast<float>(worldWidth),
+    0.0f, relativeOffset,
     0.0f, static_cast<float>(worldHeight),
     0.1f, 100.0f
     );
-    camera.worldPosition = vec3(worldWidth / 2.0f, worldHeight / 2.0f, 10.0f);
+
+    vec2 base = vec2(worldWidth / 2.0f - 13.0f, worldHeight / 2.0f); // Finding out why tf -13f is centered
+    vec3 cameraPos   = vec3(offset + base, 10.0f);  // move in XY, look from Z
+    vec3 cameraTarget = vec3(offset + base, 0.0f);   // look straight down at the same XY
+    camera.worldPosition = cameraPos;
     camera.viewMatrix = lookAt(
-        camera.worldPosition,
-        vec3(worldWidth / 2.0f, worldHeight / 2.0f, 0.0f), // look at center
+        cameraPos,
+        cameraTarget, // look at center
         vec3(0.0f, 1.0f, 0.0f) // up direction
     );
 
@@ -127,7 +135,7 @@ void GameManager::render(Camera &camera) {
     for (int y = 0; y < worldHeight; ++y) {
         for (int x = 0; x < worldWidth; ++x) {
             auto& [type, texture] = blocks[x][y];
-            if (type == BlockType::AIR) continue;
+            //if (type == BlockType::AIR) continue;
 
             vec3 worldPos = vec3(x + worldWidth / 2, y + worldHeight / 2, 0.0f);
 
@@ -163,6 +171,13 @@ void GameManager::keyCallback(Key key, Action action, Modifier modifier) {
     auto sKey = debugKeyToString(key);
     auto sAction = debugActionToString(action);
     auto sModifier = debugModToString(modifier);
-    printf("Key %s \tAction %s \tMod %s\n", sKey.c_str(), sAction.c_str(), sModifier.c_str());
+    //printf("Key %s \tAction %s \tMod %s\n", sKey.c_str(), sAction.c_str(), sModifier.c_str());
+
+    switch (key) {
+        case Key::D: offset.x += 0.1f; break;
+            case Key::A: offset.x -= 0.1f; break;
+        case Key::W: offset.y += 0.1f; break;
+            case Key::S: offset.y -= 0.1f; break;
+    }
 }
 } // arcader
