@@ -28,15 +28,15 @@ class GameManager {
     std::vector<unsigned int> indices;
 
     AssetManager *assets;
-    int screenHeight;
-    int screenWidth;
+    int *screenHeight;
+    int *screenWidth;
     Program& tile_shader;
     Program& entity_shader;
     Program& debugShader;
     Mesh mesh;
 
 public:
-    GameManager(AssetManager *assetsManager, int height, int width);
+    GameManager(AssetManager *assetsManager, int *height, int *width);
     /**
      * Initializes the game world by loading mesh data.
      */

@@ -14,7 +14,7 @@ namespace arcader {
    * Constructor for the `GameManager` class.
    * @param assetsManager Reference to the `AssetManager` instance.
    */
-GameManager::GameManager(AssetManager *assetsManager, int height, int width) : assets(assetsManager), screenHeight(height), screenWidth(width),
+GameManager::GameManager(AssetManager *assetsManager, int *height, int *width) : assets(assetsManager), screenHeight(height), screenWidth(width),
                                                                                tile_shader(assetsManager->getShader(StaticAssets::SHADER_TILE)),
                                                                                entity_shader(assetsManager->getShader(StaticAssets::SHADER_ENTITY)),
                                                                                debugShader(assetsManager->getShader(StaticAssets::SHADER_DEBUG)) {
@@ -50,14 +50,20 @@ void GameManager::init() {
 
     // Initilize blocks (temp, maybe doing procedural generation later)
     printf("  - Initializing blocks...\n");
-    for (int i = 0; i < 32; ++i) {
-        blocks[0][i] = {BlockType::STONE, StaticAssets::BLOCK_STONE};
-        blocks[1][i] = {BlockType::STONE, StaticAssets::BLOCK_STONE};
-        blocks[2][i] = {BlockType::DIRT, StaticAssets::BLOCK_DIRT};
-        blocks[3][i] = {BlockType::GRASS, StaticAssets::BLOCK_GRASS};
-        blocks[30][i] = {BlockType::WOOD, StaticAssets::BLOCK_WOOD};
-        blocks[31][i] = {BlockType::LEAVES, StaticAssets::BLOCK_LEAVES};
+    for (int x = 0; x < worldWidth; ++x) {
+        for (int y = 0; y < worldHeight; ++y) {
+            blocks[x][y] = {BlockType::AIR, StaticAssets::BLOCK_AIR};
+        }
     }
+    for (int i = 0; i < worldWidth; ++i) {
+        blocks[i][0] = {BlockType::STONE, StaticAssets::BLOCK_STONE};
+        blocks[i][1] = {BlockType::STONE, StaticAssets::BLOCK_STONE};
+        blocks[i][2] = {BlockType::DIRT, StaticAssets::BLOCK_DIRT};
+        blocks[i][3] = {BlockType::GRASS, StaticAssets::BLOCK_GRASS};
+        blocks[i][30] = {BlockType::WOOD, StaticAssets::BLOCK_WOOD};
+        blocks[i][31] = {BlockType::LEAVES, StaticAssets::BLOCK_LEAVES};
+    }
+    blocks[15][15] = {BlockType::DIRT, StaticAssets::BLOCK_DIRT};
 
     // Initialize player
     printf("  - Initializing entities...\n");
@@ -106,14 +112,15 @@ void GameManager::render(Camera &camera) {
     camera.projectionMatrix = ortho(
     0.0f, static_cast<float>(worldWidth),
     0.0f, static_cast<float>(worldHeight),
-    0.1f, 1000.0f
+    0.1f, 100.0f
     );
     camera.worldPosition = vec3(worldWidth / 2.0f, worldHeight / 2.0f, 10.0f);
     camera.viewMatrix = lookAt(
         camera.worldPosition,
-        camera.worldPosition + vec3(0.0f, 0.0f, -1.0f),
-        vec3(0.0f, 1.0f, 0.0f)
+        vec3(worldWidth / 2.0f, worldHeight / 2.0f, 0.0f), // look at center
+        vec3(0.0f, 1.0f, 0.0f) // up direction
     );
+
     
     // --- Render Blocks ---
     tile_shader.use();
@@ -122,7 +129,7 @@ void GameManager::render(Camera &camera) {
             auto& [type, texture] = blocks[x][y];
             if (type == BlockType::AIR) continue;
 
-            vec3 worldPos = vec3(x, y, 0.0f);
+            vec3 worldPos = vec3(x + worldWidth / 2, y + worldHeight / 2, 0.0f);
 
             mat4 model = translate(mat4(1.0f), worldPos);
             mat4 mvp = projection * view * model;
