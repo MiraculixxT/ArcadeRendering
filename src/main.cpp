@@ -18,19 +18,22 @@ using namespace glm;
 
 #include "cinematicEngine.hpp"
 using namespace arcader;
-#include <framework/gl/program.hpp>
-
 
 struct MainApp : public App {
 
 private:
     AssetManager assetManager;
-    GameManager gameManager{&assetManager, 1280, 720};
+    GameManager gameManager{&assetManager, &screenHeight, &screenWidth};
     CinematicEngine cinematicEngine{&assetManager, &gameManager};
 
 public:
+    int screenWidth = 1280;
+    int screenHeight = 720;
 
     MainApp() : App(1280, 720) {
+        // GLFW flags
+        glfwSetWindowAttrib(window, GLFW_RESIZABLE, GLFW_FALSE);
+
         // OpenGL flags
         glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);
@@ -60,13 +63,12 @@ public:
         if (key == Key::COMMA && action == Action::PRESS) App::imguiEnabled = !App::imguiEnabled;
 
         switch (cinematicEngine.getState()) {
-            case 3: // game state
+            case 2: // game state
                 gameManager.keyCallback(key, action, modifier);
                 break;
             default: nullptr;
         }
     }
-
 
     void render() override {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
