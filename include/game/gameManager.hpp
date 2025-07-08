@@ -32,15 +32,15 @@ class GameManager {
     int screenWidth;
     Program& tile_shader;
     Program& entity_shader;
-    Program& debug_shader;
+    Program& debugShader;
+    Mesh mesh;
 
 public:
     GameManager(AssetManager *assetsManager, int height, int width);
     /**
      * Initializes the game world by loading mesh data.
-     * @param mesh Reference to the `Mesh` object to be initialized.
      */
-    void init(Mesh &mesh);
+    void init();
 
     /**
      * Updates the game state.
@@ -48,13 +48,13 @@ public:
      */
     void update(float deltaTime);
 
+    void renderDebug(Camera &camera);
+
     /**
      * Renders the game world.
      * @param camera Reference to the `Camera` object for view transformations.
-     * @param program Reference to the shader `Program` used for rendering.
-     * @param mesh Reference to the mesh object
      */
-    void render(Camera &camera, Mesh &mesh);
+    void render(Camera &camera);
 
     /**
      * Redirection for all key inputs for player interaction.

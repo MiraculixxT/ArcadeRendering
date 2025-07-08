@@ -33,10 +33,19 @@ public:
     MainApp() : App(1280, 720) {
         // OpenGL flags
         glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+        //glDisable(GL_CULL_FACE); // Debugging
+
         glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+        //glDisable(GL_DEPTH_TEST); // Debugging
+
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Debugging
+
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // better decide between black (uncolored) squares and bg
     }
 
     /**
@@ -79,7 +88,6 @@ public:
         ImGui::StatisticsWindow(delta, resolution);
 
         ImGui::Begin("Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-        ImGui::Text("Reserved for later debugging");
         int currentState = cinematicEngine.getState();
         ImGui::SliderInt("State", &currentState, 0, 5);
 
@@ -87,7 +95,7 @@ public:
             cinematicEngine.setState(currentState+1);
             printf("Switched to state: %d\n", cinematicEngine.getState());
             if (cinematicEngine.getState() == 2) {
-                gameManager.init(cinematicEngine.mesh);
+                gameManager.init();
             }
         }
 

@@ -70,20 +70,30 @@ void GameManager::update(float deltaTime) {
     }
 }
 
-void GameManager::render(Camera &camera, Program &program, Mesh &mesh) {
-    program.use();
-    const mat4 projection = ortho(0.0f, static_cast<float>(renderer.windowWidth), 0.0f, static_cast<float>(renderer.windowHeight)); // 2D orthographic projection
-    constexpr mat4 view = mat4(1.0f); // no view transformation, or set from camera
-void GameManager::render(Camera &camera, Mesh &mesh) {
-    tile_shader.use();
+void GameManager::renderDebug(Camera& camera) {
+    debugShader.use();
 
-    // Get camera matrices
     const mat4& projection = camera.projectionMatrix;
     const mat4& view = camera.viewMatrix;
 
     // Define where the tilemap should appear in world space
     const vec3 tilemapOrigin = vec3(-5.0f, -5.0f, -1.0f);  // must be moved according to screen position (TODO)
     const float tileSize = blockDimension * 5.0f;
+    // Proper forward vector
+    const glm::vec3 forward = -normalize(glm::vec3(camera.cameraMatrix[2]));
+    const glm::vec3 debugPos = camera.worldPosition + forward * 5.0f;
+
+    mat4 model = glm::translate(glm::mat4(1.0f), debugPos);
+
+    mat4 localToWorld = model;
+    mat4 localToClip = projection * view * model;
+
+    debugShader.set("uLocalToClip", localToClip);
+    debugShader.set("uLocalToWorld", localToWorld);
+    debugShader.set("u_Color", glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+
+    mesh.draw();
+}
 
     // Render blocks
     for (int y = 0; y < worldHeight; ++y) {
