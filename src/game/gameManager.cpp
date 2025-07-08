@@ -4,23 +4,12 @@
 
 #include "game/gameManager.hpp"
 
+#include <iostream>
+
 #include "framework/mesh.hpp"
 #include "game/block.hpp"
 
 namespace arcader {
-std::vector<float> vertices = {
-    // positions    // tex coords
-    0.0f, 0.0f,     0.0f, 0.0f,
-    1.0f, 0.0f,     1.0f, 0.0f,
-    1.0f, 1.0f,     1.0f, 1.0f,
-    0.0f, 1.0f,     0.0f, 1.0f
-};
-
-std::vector<unsigned int> indices = {
-    0, 1, 2,
-    2, 3, 0
-};
-
 /**
    * Constructor for the `GameManager` class.
    * @param assetsManager Reference to the `AssetManager` instance.
@@ -28,10 +17,10 @@ std::vector<unsigned int> indices = {
 GameManager::GameManager(AssetManager *assetsManager, int height, int width) : assets(assetsManager), screenHeight(height), screenWidth(width),
                                                                                tile_shader(assetsManager->getShader(StaticAssets::SHADER_TILE)),
                                                                                entity_shader(assetsManager->getShader(StaticAssets::SHADER_ENTITY)),
-                                                                               debug_shader(assetsManager->getShader(StaticAssets::SHADER_DEBUG)) {
+                                                                               debugShader(assetsManager->getShader(StaticAssets::SHADER_DEBUG)) {
 };
 
-void GameManager::init(Mesh &mesh) {
+void GameManager::init() {
     printf("Initializing game...\n");
 
     // Load textures
@@ -44,6 +33,19 @@ void GameManager::init(Mesh &mesh) {
 
     // Load mesh
     printf("  - Loading mesh...\n");
+    std::vector<Mesh::VertexPTN> vertices = {
+        //  position           texCoord      normal
+        {{0.0f, 0.0f, 0.0f},  {0.0f, 0.0f},  {0.0f, 0.0f, 1.0f}},
+        {{1.0f, 0.0f, 0.0f},  {1.0f, 0.0f},  {0.0f, 0.0f, 1.0f}},
+        {{1.0f, 1.0f, 0.0f},  {1.0f, 1.0f},  {0.0f, 0.0f, 1.0f}},
+        {{0.0f, 1.0f, 0.0f},  {0.0f, 1.0f},  {0.0f, 0.0f, 1.0f}}
+    };
+
+    std::vector<unsigned int> indices = {
+        0, 1, 2,
+        2, 3, 0
+    };
+    mesh = Mesh();
     mesh.load(vertices, indices);
 
     // Initilize blocks (temp, maybe doing procedural generation later)
@@ -76,9 +78,6 @@ void GameManager::renderDebug(Camera& camera) {
     const mat4& projection = camera.projectionMatrix;
     const mat4& view = camera.viewMatrix;
 
-    // Define where the tilemap should appear in world space
-    const vec3 tilemapOrigin = vec3(-5.0f, -5.0f, -1.0f);  // must be moved according to screen position (TODO)
-    const float tileSize = blockDimension * 5.0f;
     // Proper forward vector
     const glm::vec3 forward = -normalize(glm::vec3(camera.cameraMatrix[2]));
     const glm::vec3 debugPos = camera.worldPosition + forward * 5.0f;
@@ -95,39 +94,75 @@ void GameManager::renderDebug(Camera& camera) {
     mesh.draw();
 }
 
-    // Render blocks
+void GameManager::render(Camera &camera) {
+    const mat4& projection = camera.projectionMatrix;
+    const mat4& view = camera.viewMatrix;
+
+    tile_shader.use();
+
+    // Step 1: Determine block size in pixels (maintain square)
+    float pixelBlockWidth  = static_cast<float>(screenWidth)  / worldWidth;
+    float pixelBlockHeight = static_cast<float>(screenHeight) / worldHeight;
+    float blockSize        = std::min(pixelBlockWidth, pixelBlockHeight);
+
+    // Step 2: Total tilemap size
+    float tilemapPixelWidth  = worldWidth  * blockSize;
+    float tilemapPixelHeight = worldHeight * blockSize;
+
+    // Step 3: Centering offset
+    float offsetX = (screenWidth  - tilemapPixelWidth)  * 0.5f;
+    float offsetY = (screenHeight - tilemapPixelHeight) * 0.5f;
+
+    // Step 4: Set camera to center of tilemap
+    camera.worldPosition = vec3(tilemapPixelWidth * 0.5f, tilemapPixelHeight * 0.5f, 100.0f); // Look from in front
+    camera.projectionMatrix = glm::ortho(
+    0.0f, static_cast<float>(screenWidth),
+    0.0f, static_cast<float>(screenHeight),
+    0.1f, 1000.0f
+    );
+    camera.viewMatrix = glm::lookAt(
+        camera.worldPosition,
+        camera.worldPosition + vec3(0.0f, 0.0f, -1.0f),
+        vec3(0.0f, 1.0f, 0.0f)
+    );
+
     for (int y = 0; y < worldHeight; ++y) {
         for (int x = 0; x < worldWidth; ++x) {
-            auto &[type, texture] = blocks[x][y];
+            auto& [type, texture] = blocks[x][y];
             if (type == BlockType::AIR) continue;
 
-            // Position each tile in 3D world space
-            vec3 worldPos = tilemapOrigin + vec3(x * tileSize, y * tileSize, 0.0f);
+            // Convert tile coordinate to world-space pixel position
+            float worldX = offsetX + x * blockSize;
+            float worldY = offsetY + y * blockSize;
+            vec3 worldPos = vec3(worldX, worldY, 0.0f);
+
             mat4 model = translate(mat4(1.0f), worldPos);
+            model = scale(model, vec3(blockSize, blockSize, 1.0f));
+
             mat4 mvp = projection * view * model;
 
             tile_shader.set("u_MVP", mvp);
-            tile_shader.set("u_Texture", 0); // Texture unit 0
+            tile_shader.set("u_Texture", 0);
 
             GLuint texID = assets->getTexture(texture).handle;
             glBindTexture(GL_TEXTURE_2D, texID);
-            mesh.draw(); // draws the quad
+            mesh.draw();
         }
     }
 
-    // Render entities (same idea — use camera matrices)
+    // --- Render Entities ---
     entity_shader.use();
-    for (const auto &entity : entities) {
-        vec3 entityPos3D = tilemapOrigin + vec3(entity->position, 0.0f); // align entities with grid
-        mat4 model = translate(mat4(1.0f), entityPos3D);
-        model = scale(model, vec3(entity->getDimension(), entity->getDimension(), 1.0f));
+    entity_shader.set("u_Texture", 0); // bind once
 
-        mat4 mvp = projection * view * model;
-
-        entity_shader.set("u_MVP", mvp);
-        GLuint texID = assets->getTexture(entity->getTexture()).handle;
-        glBindTexture(GL_TEXTURE_2D, texID);
-        entity->render(mvp, assets); // may pass model, view, projection separately
+    for (const auto& entity : entities) {
+        // vec3 entityPos3D = tilemapOrigin + vec3(entity->position, 0.0f);
+        // mat4 model = translate(mat4(1.0f), entityPos3D);
+        // model = scale(model, vec3(entity->getDimension(), entity->getDimension(), 1.0f));
+        // mat4 mvp = projection * view * model;
+        //
+        // entity_shader.set("u_MVP", mvp);
+        // glBindTexture(GL_TEXTURE_2D, assets->getTexture(entity->getTexture()).handle);
+        // entity->render(mvp, assets);
     }
 }
 

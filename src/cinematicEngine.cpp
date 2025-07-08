@@ -117,8 +117,8 @@ namespace arcader {
 
                 break;
             case 2:
-
-                game->render(camera, mesh);
+                game->render(camera);
+                //game->renderDebug(camera);
                 break;
             case 3:
                 // Render static camera with 2D game scene
