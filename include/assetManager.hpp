@@ -60,6 +60,10 @@ namespace arcader {
         ENTITY_PLAYER,
         ENTITY_TREE,
 
+        SHADER_TILE,
+        SHADER_ENTITY,
+        SHADER_DEBUG,
+
         ARCADE_MACHINE,
         ROOM
     };
@@ -73,6 +77,8 @@ namespace arcader {
 
         void loadShader(const StaticAssets &name, const std::string &vertexPath, const std::string &fragmentPath);
 
+        AssetManager();
+
         void loadTexture(const StaticAssets &name, const std::filesystem::path &filepath,
                          GLenum internalFormat = GL_SRGB8_ALPHA8, GLint mipmaps = 0);
 
@@ -80,7 +86,7 @@ namespace arcader {
 
         const Mesh &getMesh(const StaticAssets &name) const;
 
-        const Program &getShader(const StaticAssets &name) const;
+        Program &getShader(const StaticAssets &name);
 
         RenderableAsset getRenderable(const StaticAssets &name) const;
 

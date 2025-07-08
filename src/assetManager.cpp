@@ -3,10 +3,21 @@
 //
 
 #include "assetManager.hpp"
+
+#include <iostream>
 #include <framework/objparser.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 namespace arcader {
+
+    AssetManager::AssetManager() {
+        // Preload shaders
+        loadShader(StaticAssets::SHADER_TILE, "shaders/game_tile.vsh", "shaders/game_tile.fsh");
+        loadShader(StaticAssets::SHADER_ENTITY, "shaders/game_entity.vsh", "shaders/game_entity.fsh");
+
+        // Load default textures
+        loadTexture(StaticAssets::MISSING_TEXTURE, "assets/textures/missing_texture.png");
+    }
 
     void
     AssetManager::loadTexture(const StaticAssets &name, const std::filesystem::path &filepath, GLenum internalFormat,
@@ -42,7 +53,7 @@ namespace arcader {
         return it->second;
     }
 
-    const Program &AssetManager::getShader(const StaticAssets &name) const {
+    Program &AssetManager::getShader(const StaticAssets &name) {
         auto it = shaders.find(name);
         if (it == shaders.end())
             throw std::runtime_error("Shader not found: " + std::to_string(static_cast<int>(name)));
