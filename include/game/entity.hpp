@@ -42,7 +42,7 @@ public:
      * @param worldToClip Transformation matrix for rendering.
      * @param assets Reference to the AssetManager for accessing assets.
      */
-    virtual void render(const glm::mat4 &worldToClip, AssetManager &assets) const {}
+    virtual void render(const glm::mat4 &worldToClip, AssetManager *assets) const {}
 
     virtual EntityType getType() const { return type; }
     virtual StaticAssets getTexture() const { return texture; }
@@ -53,7 +53,9 @@ public:
             case EntityType::PLAYER: return StaticAssets::ENTITY_PLAYER;
             case EntityType::TREE: return StaticAssets::ENTITY_TREE;
 
-            default: return StaticAssets::MISSING_TEXTURE;
+            default:
+                printf("Missing Texture: %d\n", static_cast<int>(type));
+                return StaticAssets::MISSING_TEXTURE;
         }
     };
 };
@@ -86,7 +88,7 @@ public:
      * @param worldToClip Transformation matrix for rendering.
      * @param assets Reference to the AssetManager for accessing assets.
      */
-    void render(const glm::mat4& worldToClip, AssetManager& assets) const override;
+    void render(const glm::mat4 & worldToClip, AssetManager *assets) const override;
 
     /**
      * Gets the current direction of the player.

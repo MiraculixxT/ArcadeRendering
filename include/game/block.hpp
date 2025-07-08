@@ -34,6 +34,7 @@ struct Block {
 };
 
 class BlockStates {
+public:
     /**
      * Retrieves all available block types in the game.
      * @return A vector containing all block types.

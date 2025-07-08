@@ -4,6 +4,8 @@
 
 #include "game/entity.hpp"
 
+#include "framework/app.hpp"
+
 namespace arcader {
 /*
 StaticAssets Entity::getTextureToFromType(const EntityType &type) {
@@ -28,8 +30,8 @@ void EntityPlayer::update(float deltaTime) {
 }
 
 
-void EntityPlayer::render(const glm::mat4 &worldToClip, AssetManager &assets) const {
-    assets.render(texture, worldToClip, glm::vec3(position, 0.0f), glm::vec3(dimension));
+void EntityPlayer::render(const glm::mat4 &worldToClip, AssetManager *assets) const {
+    assets->render(texture, worldToClip, glm::vec3(position, 0.0f), glm::vec3(dimension));
 }
 
 bool EntityPlayer::getDirection() const {
