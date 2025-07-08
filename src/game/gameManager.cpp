@@ -55,6 +55,8 @@ void GameManager::init() {
         blocks[1][i] = {BlockType::STONE, StaticAssets::BLOCK_STONE};
         blocks[2][i] = {BlockType::DIRT, StaticAssets::BLOCK_DIRT};
         blocks[3][i] = {BlockType::GRASS, StaticAssets::BLOCK_GRASS};
+        blocks[30][i] = {BlockType::WOOD, StaticAssets::BLOCK_WOOD};
+        blocks[31][i] = {BlockType::LEAVES, StaticAssets::BLOCK_LEAVES};
     }
 
     // Initialize player
@@ -63,6 +65,8 @@ void GameManager::init() {
     auto player = new EntityPlayer(vec2(0.0f, 6.0f), 32);
     auto pPlayer = std::unique_ptr<Entity>(player);
     entities.push_back(std::move(pPlayer));
+
+    // Setup camera properly
 }
 
 void GameManager::update(float deltaTime) {
@@ -79,17 +83,17 @@ void GameManager::renderDebug(Camera& camera) {
     const mat4& view = camera.viewMatrix;
 
     // Proper forward vector
-    const glm::vec3 forward = -normalize(glm::vec3(camera.cameraMatrix[2]));
-    const glm::vec3 debugPos = camera.worldPosition + forward * 5.0f;
+    const vec3 forward = -normalize(vec3(camera.cameraMatrix[2]));
+    const vec3 debugPos = camera.worldPosition + forward * 5.0f;
 
-    mat4 model = glm::translate(glm::mat4(1.0f), debugPos);
+    mat4 model = translate(mat4(1.0f), debugPos);
 
     mat4 localToWorld = model;
     mat4 localToClip = projection * view * model;
 
     debugShader.set("uLocalToClip", localToClip);
     debugShader.set("uLocalToWorld", localToWorld);
-    debugShader.set("u_Color", glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+    debugShader.set("u_Color", vec4(1.0f, 0.0f, 0.0f, 1.0f));
 
     mesh.draw();
 }
@@ -98,47 +102,29 @@ void GameManager::render(Camera &camera) {
     const mat4& projection = camera.projectionMatrix;
     const mat4& view = camera.viewMatrix;
 
-    tile_shader.use();
-
-    // Step 1: Determine block size in pixels (maintain square)
-    float pixelBlockWidth  = static_cast<float>(screenWidth)  / worldWidth;
-    float pixelBlockHeight = static_cast<float>(screenHeight) / worldHeight;
-    float blockSize        = std::min(pixelBlockWidth, pixelBlockHeight);
-
-    // Step 2: Total tilemap size
-    float tilemapPixelWidth  = worldWidth  * blockSize;
-    float tilemapPixelHeight = worldHeight * blockSize;
-
-    // Step 3: Centering offset
-    float offsetX = (screenWidth  - tilemapPixelWidth)  * 0.5f;
-    float offsetY = (screenHeight - tilemapPixelHeight) * 0.5f;
-
-    // Step 4: Set camera to center of tilemap
-    camera.worldPosition = vec3(tilemapPixelWidth * 0.5f, tilemapPixelHeight * 0.5f, 100.0f); // Look from in front
-    camera.projectionMatrix = glm::ortho(
-    0.0f, static_cast<float>(screenWidth),
-    0.0f, static_cast<float>(screenHeight),
+    // Camera
+    camera.projectionMatrix = ortho(
+    0.0f, static_cast<float>(worldWidth),
+    0.0f, static_cast<float>(worldHeight),
     0.1f, 1000.0f
     );
-    camera.viewMatrix = glm::lookAt(
+    camera.worldPosition = vec3(worldWidth / 2.0f, worldHeight / 2.0f, 10.0f);
+    camera.viewMatrix = lookAt(
         camera.worldPosition,
         camera.worldPosition + vec3(0.0f, 0.0f, -1.0f),
         vec3(0.0f, 1.0f, 0.0f)
     );
-
+    
+    // --- Render Blocks ---
+    tile_shader.use();
     for (int y = 0; y < worldHeight; ++y) {
         for (int x = 0; x < worldWidth; ++x) {
             auto& [type, texture] = blocks[x][y];
             if (type == BlockType::AIR) continue;
 
-            // Convert tile coordinate to world-space pixel position
-            float worldX = offsetX + x * blockSize;
-            float worldY = offsetY + y * blockSize;
-            vec3 worldPos = vec3(worldX, worldY, 0.0f);
+            vec3 worldPos = vec3(x, y, 0.0f);
 
             mat4 model = translate(mat4(1.0f), worldPos);
-            model = scale(model, vec3(blockSize, blockSize, 1.0f));
-
             mat4 mvp = projection * view * model;
 
             tile_shader.set("u_MVP", mvp);
