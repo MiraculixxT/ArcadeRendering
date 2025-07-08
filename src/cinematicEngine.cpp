@@ -10,8 +10,8 @@
 
 namespace arcader {
 
-    CinematicEngine::CinematicEngine(AssetManager *assets)
-            : state(0), timer(0.0f), assets(assets), camera() {
+    CinematicEngine::CinematicEngine(AssetManager *assets, GameManager *gameManager)
+            : state(0), timer(0.0f), assets(assets), camera(), game(gameManager) {
 
         lighting.init(
                 glm::vec3(0.02f, 0.02f, 0.05f),             // ambientColor (dunkelblau)
@@ -117,7 +117,8 @@ namespace arcader {
 
                 break;
             case 2:
-                // Render moving camera to main machine
+
+                game->render(camera, mesh);
                 break;
             case 3:
                 // Render static camera with 2D game scene

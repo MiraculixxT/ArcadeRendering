@@ -27,17 +27,15 @@ class GameManager {
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
 
-    AssetManager &assets;
-    CinematicEngine &renderer;
+    AssetManager *assets;
+    int screenHeight;
+    int screenWidth;
+    Program& tile_shader;
+    Program& entity_shader;
+    Program& debug_shader;
 
 public:
-    /**
-     * Constructor for the `GameManager` class.
-     * @param assetsManager Reference to the `AssetManager` instance.
-     * @param cinematicEngine Reference to the `CinematicEngine` instance.
-     */
-    explicit GameManager(AssetManager &assetsManager, CinematicEngine &cinematicEngine) : assets(assetsManager), renderer(cinematicEngine) {};
-
+    GameManager(AssetManager *assetsManager, int height, int width);
     /**
      * Initializes the game world by loading mesh data.
      * @param mesh Reference to the `Mesh` object to be initialized.
@@ -56,7 +54,7 @@ public:
      * @param program Reference to the shader `Program` used for rendering.
      * @param mesh Reference to the mesh object
      */
-    void render(Camera &camera, Program &program, Mesh &mesh);
+    void render(Camera &camera, Mesh &mesh);
 
     /**
      * Redirection for all key inputs for player interaction.

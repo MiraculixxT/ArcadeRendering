@@ -25,8 +25,8 @@ struct MainApp : public App {
 
 private:
     AssetManager assetManager;
-    CinematicEngine cinematicEngine{&assetManager};
-    GameManager gameManager{assetManager, cinematicEngine};
+    GameManager gameManager{&assetManager, 1280, 720};
+    CinematicEngine cinematicEngine{&assetManager, &gameManager};
 
 public:
 
@@ -85,6 +85,10 @@ public:
 
         if( ImGui::Button("Next State")) {
             cinematicEngine.setState(currentState+1);
+            printf("Switched to state: %d\n", cinematicEngine.getState());
+            if (cinematicEngine.getState() == 2) {
+                gameManager.init(cinematicEngine.mesh);
+            }
         }
 
         if (ImGui::Button("Previous State")) {

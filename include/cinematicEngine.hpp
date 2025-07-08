@@ -9,6 +9,7 @@
 #include "assetManager.hpp"
 #include <memory>
 #include "lightingSystem.hpp"
+#include "game/gameManager.hpp"
 
 /**
  * @brief Controls cinematic sequences including timed camera movement and rendering transitions.
@@ -17,10 +18,11 @@
  * and utilizes the AssetManager to retrieve required assets such as models or textures.
  */
 namespace arcader {
+    class GameManager;
 
     class CinematicEngine {
     public:
-        explicit CinematicEngine(AssetManager *assetManager);
+        explicit CinematicEngine(AssetManager *assetManager, GameManager *gameManager);
 
         void update(float deltaTime);
 
@@ -42,6 +44,7 @@ namespace arcader {
 
         const int windowWidth = 1280;
         const int windowHeight = 720;
+        Mesh mesh;
 
     private:
         void updateScene(int state, float dt);
@@ -57,9 +60,9 @@ namespace arcader {
         GLuint cubemapTexture;
 
         AssetManager *assets;
+        GameManager *game;
         Camera camera;
         LightingSystem lighting;
-        Mesh mesh;
 
         // Optional: animation interpolation helpers
     };
