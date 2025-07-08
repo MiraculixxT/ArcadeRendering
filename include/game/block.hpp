@@ -47,6 +47,8 @@ public:
      * @return The texture associated with the given block type.
      */
     static StaticAssets getTextureToFromType(const BlockType &type);
+
+    static std::string getTextureName(const BlockType &type);
 };
 } // arcader
 

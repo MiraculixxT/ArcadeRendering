@@ -33,4 +33,19 @@ StaticAssets BlockStates::getTextureToFromType(const BlockType &type) {
             return StaticAssets::MISSING_TEXTURE;
     }
 };
+
+std::string BlockStates::getTextureName(const BlockType &type) {
+    switch (type) {
+        case BlockType::GRASS: return "grass";
+        case BlockType::DIRT: return "dirt";
+        case BlockType::WOOD: return "wood";
+        case BlockType::LEAVES: return "leaves";
+        case BlockType::STONE: return "stone";
+        case BlockType::WATER: return "water";
+        case BlockType::AIR: return "air";
+        default:
+            printf("Missing Texture Name for type: %d\n", static_cast<int>(type));
+            return "missing_texture";
+    }
+}
 }
