@@ -37,6 +37,14 @@ class GameManager {
 
 public:
     GameManager(AssetManager *assetsManager, int *height, int *width);
+
+    // World generation data
+    int seed;
+    float frequency;
+    float terrainBase;
+    float terrainPeak;
+    float treeFrequency;
+
     /**
      * Initializes the game world by loading mesh data.
      */
@@ -46,6 +54,11 @@ public:
      * Generate the block terrain based on a perlin noise algorithm with the help of the fast noise lite API.
      */
     void generateTerrain();
+
+    /**
+     * Generate trees on top of grass blocks randomly.
+     */
+    void generateTrees();
 
     /**
      * Place a block in the world and updating the surrounding if needed

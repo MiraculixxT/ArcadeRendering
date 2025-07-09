@@ -52,13 +52,14 @@ void GameManager::init() {
 
     // Initilize blocks (temp, maybe doing procedural generation later)
     printf("  - Initializing blocks...\n");
-    for (int x = 0; x < worldWidth; ++x) {
-        for (int y = 0; y < worldHeight; ++y) {
-            blocks[x][y] = {BlockType::AIR, StaticAssets::BLOCK_AIR};
-        }
-    }
-
+    std::random_device rd;
+    seed = rd();
+    frequency = 0.03f;
+    terrainBase = 0.0f;
+    terrainPeak = 100.0f;
+    treeFrequency = 0.1f;
     generateTerrain();
+    generateTrees();
 
     // Initialize player
     printf("  - Initializing entities...\n");
@@ -66,35 +67,27 @@ void GameManager::init() {
     auto player = new EntityPlayer(vec2(0.0f, 6.0f), 32);
     auto pPlayer = std::unique_ptr<Entity>(player);
     entities.push_back(std::move(pPlayer));
-
-    // Setup camera properly
 }
 
 void GameManager::generateTerrain() {
     FastNoiseLite noise;
     noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
 
-    std::random_device rd;
-    const int seed = rd();
-    printf("    - Seed: %d\n", seed);
     noise.SetSeed(seed);
-    noise.SetFrequency(0.03f);
+    noise.SetFrequency(frequency);
 
     for (int x = 0; x < worldWidth; ++x) {
         // Base terrain height
-        const float base = noise.GetNoise(static_cast<float>(x), 0.0f);                  // Base terrain
-        const float mountain = noise.GetNoise(static_cast<float>(x) * 0.5f, 100.0f);  // Large features
-        const float overhang = noise.GetNoise(static_cast<float>(x) * 3.0f, 200.0f);  // Small jagged shapes
+        const float base = noise.GetNoise(static_cast<float>(x), terrainBase);                  // Base terrain
+        const float mountain = noise.GetNoise(static_cast<float>(x) * 0.5f, terrainPeak);  // Large features
 
         // Shape terrain: combine noise layers
-        const int height = 8 + static_cast<int>(
-            base * 5.0f +
-            std::pow(std::max(0.0f, mountain), 2.0f) * 10.0f +
+        int height = 8 + static_cast<int>(
+            base * 4.0f +
+            std::pow(std::max(0.0f, mountain), 3.0f) * 25.0f +
             std::sin(x * 0.3f) * 1.5f
         );
-
-        // Apply overhang logic
-        const bool hasOverhang = overhang > 0.45f;
+        height = std::min(height, worldHeight - 3); // Leave some space for blocks above
 
         for (int y = 0; y < worldHeight; ++y) {
             if (y < height - 3)
@@ -103,15 +96,60 @@ void GameManager::generateTerrain() {
                 placeBlock(x, y, BlockType::DIRT);
             else if (y == height - 1)
                 placeBlock(x, y, BlockType::GRASS);
-            else if (hasOverhang && y == height)
-                placeBlock(x, y, BlockType::DIRT); // overhang
             else
                 blocks[x][y] = {BlockType::AIR, StaticAssets::BLOCK_AIR}; // dont use place function on air, waste of resources
         }
     }
 }
 
+void GameManager::generateTrees() {
+    FastNoiseLite treeNoise;
+    treeNoise.SetSeed(seed + 42); // Offset from terrain seed
+    treeNoise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+    treeNoise.SetFrequency(treeFrequency); // Controls tree spacing
+
+    for (int x = 1; x < worldWidth - 1; ++x) {
+        for (int y = 0; y < worldHeight - 4; ++y) {
+            if (blocks[x][y].type != BlockType::GRASS)
+                continue;
+
+            // Check space above for tree
+            bool canPlaceTree = true;
+            for (int dy = 1; dy <= 3 && canPlaceTree; ++dy) {
+                if (blocks[x][y + dy].type != BlockType::AIR)
+                    canPlaceTree = false;
+            }
+
+            if (!canPlaceTree)
+                continue;
+
+            // Use noise to decide whether to place a tree
+            float noiseValue = treeNoise.GetNoise(static_cast<float>(x), static_cast<float>(y));
+            if (noiseValue < 0.4f) // Density
+                continue;
+
+            std::mt19937 gen(seed + x);
+            std::uniform_real_distribution dist(2.0f, 5.0f);
+            const int treeHeight = dist(gen); // 2 to 5
+
+            // Place wood
+            for (int i = 1; i < treeHeight; ++i) {
+                placeBlock(x, y + i, BlockType::WOOD);
+            }
+
+            // Place leaves
+            placeBlock(x, y + 1 + treeHeight, BlockType::LEAVES); // center top
+            placeBlock(x - 1, y + treeHeight, BlockType::LEAVES);
+            placeBlock(x,     y + treeHeight, BlockType::LEAVES);
+            placeBlock(x + 1, y + treeHeight, BlockType::LEAVES);
+        }
+    }
+}
+
 void GameManager::placeBlock(const int x, const int y, const BlockType type) {
+    auto currentBlock = blocks[x][y];
+    if (type != BlockType::AIR && currentBlock.type == BlockType::WOOD) return;
+
     Block newBlock = {type, BlockStates::getTextureToFromType(type)};
     blocks[x][y] = newBlock;
 

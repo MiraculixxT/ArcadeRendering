@@ -4,6 +4,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/constants.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
+#include <random>
 #include <glm/gtx/transform.hpp>
 
 #include "game/gameManager.hpp"
@@ -60,7 +61,9 @@ public:
     void keyCallback(Key key, Action action, Modifier modifier) override {
         if (key == Key::ESC && action == Action::PRESS) App::close();
         // Toggle GUI with COMMA
-        if (key == Key::COMMA && action == Action::PRESS) App::imguiEnabled = !App::imguiEnabled;
+        if (key == Key::COMMA && action == Action::PRESS) {
+            App::imguiEnabled = !App::imguiEnabled;
+        };
 
         switch (cinematicEngine.getState()) {
             case 2: // game state
@@ -104,11 +107,27 @@ public:
         if (ImGui::Button("Previous State")) {
             cinematicEngine.setState(currentState-1);
         }
+        ImGui::End();
 
-        if (ImGui::Button("Regen World")) {
+        ImGui::Begin("World Generation", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+        if (ImGui::Button("Seed Randomize")) {
+            std::random_device rd;
+            gameManager.seed = rd();
             gameManager.generateTerrain();
         }
-
+        if (ImGui::SliderFloat("Frequency", &gameManager.frequency, 0.01f, 0.1f)) {
+            gameManager.generateTerrain();
+        }
+        if (ImGui::SliderFloat("Mod Base", &gameManager.terrainBase, 0.0f, 100.0f)) {
+            gameManager.generateTerrain();
+        }
+        if (ImGui::SliderFloat("Mod Peak", &gameManager.terrainPeak, 100.0f, 300.0f)) {
+            gameManager.generateTerrain();
+        }
+        if (ImGui::SliderFloat("Tree Frequency", &gameManager.treeFrequency, 0.01f, 1.0f)) {
+            gameManager.generateTerrain();
+            gameManager.generateTrees();
+        }
         ImGui::End();
     }
 };
