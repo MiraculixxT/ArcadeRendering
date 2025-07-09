@@ -43,6 +43,19 @@ public:
     void init();
 
     /**
+     * Generate the block terrain based on a perlin noise algorithm with the help of the fast noise lite API.
+     */
+    void generateTerrain();
+
+    /**
+     * Place a block in the world and updating the surrounding if needed
+     * @param x coord x
+     * @param y coord y
+     * @param type the block type that is intended to be placed
+     */
+    void placeBlock(int x, int y, BlockType type);
+
+    /**
      * Updates the game state.
      * @param deltaTime Time elapsed since the last update, used for time-based calculations.
      */

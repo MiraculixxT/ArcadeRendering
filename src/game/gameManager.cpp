@@ -5,9 +5,11 @@
 #include "game/gameManager.hpp"
 
 #include <iostream>
+#include <random>
 
 #include "framework/mesh.hpp"
 #include "game/block.hpp"
+#include "game/FastNoiseLite.hpp"
 
 namespace arcader {
 /**
@@ -55,15 +57,8 @@ void GameManager::init() {
             blocks[x][y] = {BlockType::AIR, StaticAssets::BLOCK_AIR};
         }
     }
-    for (int i = 0; i < worldWidth; ++i) {
-        blocks[i][0] = {BlockType::STONE, StaticAssets::BLOCK_STONE};
-        blocks[i][1] = {BlockType::STONE, StaticAssets::BLOCK_STONE};
-        blocks[i][2] = {BlockType::DIRT, StaticAssets::BLOCK_DIRT};
-        blocks[i][3] = {BlockType::GRASS, StaticAssets::BLOCK_GRASS};
-        blocks[i][30] = {BlockType::WOOD, StaticAssets::BLOCK_WOOD};
-        blocks[i][31] = {BlockType::LEAVES, StaticAssets::BLOCK_LEAVES};
-    }
-    blocks[15][15] = {BlockType::DIRT, StaticAssets::BLOCK_DIRT};
+
+    generateTerrain();
 
     // Initialize player
     printf("  - Initializing entities...\n");
@@ -73,6 +68,64 @@ void GameManager::init() {
     entities.push_back(std::move(pPlayer));
 
     // Setup camera properly
+}
+
+void GameManager::generateTerrain() {
+    FastNoiseLite noise;
+    noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
+
+    std::random_device rd;
+    const int seed = rd();
+    printf("    - Seed: %d\n", seed);
+    noise.SetSeed(seed);
+    noise.SetFrequency(0.03f);
+
+    for (int x = 0; x < worldWidth; ++x) {
+        // Base terrain height
+        const float base = noise.GetNoise(static_cast<float>(x), 0.0f);                  // Base terrain
+        const float mountain = noise.GetNoise(static_cast<float>(x) * 0.5f, 100.0f);  // Large features
+        const float overhang = noise.GetNoise(static_cast<float>(x) * 3.0f, 200.0f);  // Small jagged shapes
+
+        // Shape terrain: combine noise layers
+        const int height = 8 + static_cast<int>(
+            base * 5.0f +
+            std::pow(std::max(0.0f, mountain), 2.0f) * 10.0f +
+            std::sin(x * 0.3f) * 1.5f
+        );
+
+        // Apply overhang logic
+        const bool hasOverhang = overhang > 0.45f;
+
+        for (int y = 0; y < worldHeight; ++y) {
+            if (y < height - 3)
+                placeBlock(x, y, BlockType::STONE);
+            else if (y < height - 1)
+                placeBlock(x, y, BlockType::DIRT);
+            else if (y == height - 1)
+                placeBlock(x, y, BlockType::GRASS);
+            else if (hasOverhang && y == height)
+                placeBlock(x, y, BlockType::DIRT); // overhang
+            else
+                blocks[x][y] = {BlockType::AIR, StaticAssets::BLOCK_AIR}; // dont use place function on air, waste of resources
+        }
+    }
+}
+
+void GameManager::placeBlock(const int x, const int y, const BlockType type) {
+    Block newBlock = {type, BlockStates::getTextureToFromType(type)};
+    blocks[x][y] = newBlock;
+
+    // Check if we are grass and need to decay (block aboth)
+    if (type == BlockType::GRASS) {
+        const auto topBlock = &blocks[x][y+1];
+        if (topBlock->type != BlockType::AIR) blocks[x][y+1] = {BlockType::DIRT, StaticAssets::BLOCK_DIRT};
+    }
+
+    // Check if underneath is grass to decay
+    const auto subBlock = &blocks[x][y-1];
+    if (subBlock->type == BlockType::GRASS) {
+        blocks[x][y-1] = {BlockType::DIRT, StaticAssets::BLOCK_DIRT};
+    }
 }
 
 void GameManager::update(float deltaTime) {
@@ -111,15 +164,15 @@ void GameManager::render(Camera &camera) {
     const mat4& view = camera.viewMatrix;
 
     // Camera
-    const float relative = static_cast<float>(*screenWidth) / static_cast<float>(*screenHeight);
-    const float relativeOffset = relative * worldWidth;
+    const float relativeWidth = static_cast<float>(*screenWidth) / static_cast<float>(*screenHeight);
+    const float relativeOffset = relativeWidth * worldWidth;
     camera.projectionMatrix = ortho(
     0.0f, relativeOffset,
     0.0f, static_cast<float>(worldHeight),
     0.1f, 100.0f
     );
 
-    vec2 base = vec2(worldWidth / 2.0f - 13.0f, worldHeight / 2.0f); // Finding out why tf -13f is centered
+    vec2 base = vec2(worldWidth / 2.0f - relativeOffset / 2.0f, 0.0f);
     vec3 cameraPos   = vec3(offset + base, 10.0f);  // move in XY, look from Z
     vec3 cameraTarget = vec3(offset + base, 0.0f);   // look straight down at the same XY
     camera.worldPosition = cameraPos;
@@ -137,7 +190,7 @@ void GameManager::render(Camera &camera) {
             auto& [type, texture] = blocks[x][y];
             //if (type == BlockType::AIR) continue;
 
-            vec3 worldPos = vec3(x + worldWidth / 2, y + worldHeight / 2, 0.0f);
+            vec3 worldPos = vec3(x, y, 0.0f);
 
             mat4 model = translate(mat4(1.0f), worldPos);
             mat4 mvp = projection * view * model;

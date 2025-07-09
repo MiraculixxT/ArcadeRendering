@@ -105,6 +105,10 @@ public:
             cinematicEngine.setState(currentState-1);
         }
 
+        if (ImGui::Button("Regen World")) {
+            gameManager.generateTerrain();
+        }
+
         ImGui::End();
     }
 };
