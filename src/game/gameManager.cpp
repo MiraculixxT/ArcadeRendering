@@ -17,9 +17,10 @@ namespace arcader {
    * @param assetsManager Reference to the `AssetManager` instance.
    */
 GameManager::GameManager(AssetManager *assetsManager, int *height, int *width) : assets(assetsManager), screenHeight(height), screenWidth(width),
-                                                                               tile_shader(assetsManager->getShader(StaticAssets::SHADER_TILE)),
-                                                                               entity_shader(assetsManager->getShader(StaticAssets::SHADER_ENTITY)),
-                                                                               debugShader(assetsManager->getShader(StaticAssets::SHADER_DEBUG)) {
+                                                                                 tile_shader(assetsManager->getShader(StaticAssets::SHADER_TILE)),
+                                                                                 entity_shader(assetsManager->getShader(StaticAssets::SHADER_ENTITY)),
+                                                                                 debugShader(assetsManager->getShader(StaticAssets::SHADER_DEBUG)) {
+    blocks.resize(worldWidth, std::vector<Block>(worldHeight));
 };
 
 void GameManager::init() {
@@ -57,19 +58,27 @@ void GameManager::init() {
     frequency = 0.03f;
     terrainBase = 0.0f;
     terrainPeak = 100.0f;
-    treeFrequency = 0.1f;
+    treeFrequency = 0.15f;
+    waterLevel = 7;
     generateTerrain();
     generateTrees();
 
     // Initialize player
     printf("  - Initializing entities...\n");
     entities.clear();
-    auto player = new EntityPlayer(vec2(0.0f, 6.0f), 32);
-    auto pPlayer = std::unique_ptr<Entity>(player);
+    auto pPlayer = std::make_unique<EntityPlayer>(vec2(16, BlockStates::getHighestBlock(true, 16, blocks) + 1));
+    player = pPlayer.get();
     entities.push_back(std::move(pPlayer));
 }
 
 void GameManager::generateTerrain() {
+    // Reset
+    for (int x = 0; x < worldWidth; ++x) {
+        for (int y = 0; y < worldHeight; ++y) {
+            blocks[x][y] = {BlockType::AIR, StaticAssets::BLOCK_AIR};
+        }
+    }
+
     FastNoiseLite noise;
     noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
 
@@ -96,6 +105,8 @@ void GameManager::generateTerrain() {
                 placeBlock(x, y, BlockType::DIRT);
             else if (y == height - 1)
                 placeBlock(x, y, BlockType::GRASS);
+            else if (y <= waterLevel)
+                placeBlock(x, y, BlockType::WATER);
             else
                 blocks[x][y] = {BlockType::AIR, StaticAssets::BLOCK_AIR}; // dont use place function on air, waste of resources
         }
