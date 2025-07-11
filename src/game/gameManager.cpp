@@ -158,10 +158,10 @@ void GameManager::generateTrees() {
 }
 
 void GameManager::placeBlock(const int x, const int y, const BlockType type) {
-    auto currentBlock = blocks[x][y];
+    const auto currentBlock = blocks[x][y];
     if (type != BlockType::AIR && currentBlock.type == BlockType::WOOD) return;
 
-    Block newBlock = {type, BlockStates::getTextureToFromType(type)};
+    const Block newBlock = {type, BlockStates::getTextureToFromType(type)};
     blocks[x][y] = newBlock;
 
     // Check if we are grass and need to decay (block aboth)
@@ -170,10 +170,39 @@ void GameManager::placeBlock(const int x, const int y, const BlockType type) {
         if (topBlock->type != BlockType::AIR) blocks[x][y+1] = {BlockType::DIRT, StaticAssets::BLOCK_DIRT};
     }
 
+    // Check if we are water and need to flow
+    if (type == BlockType::WATER) {
+        // Check if we can flow down
+        if (y > 0 && blocks[x][y - 1].type == BlockType::AIR) {
+            placeBlock(x - 1, y, BlockType::WATER);
+        }
+        // Check if we can flow left or right
+        if (x > 0 && blocks[x - 1][y].type == BlockType::AIR) {
+            placeBlock(x - 1, y, BlockType::WATER);
+        }
+        if (x < worldWidth - 1 && blocks[x + 1][y].type == BlockType::AIR) {
+            placeBlock(x + 1, y, BlockType::WATER);
+        }
+    }
+
     // Check if underneath is grass to decay
     const auto subBlock = &blocks[x][y-1];
     if (subBlock->type == BlockType::GRASS) {
         blocks[x][y-1] = {BlockType::DIRT, StaticAssets::BLOCK_DIRT};
+    }
+}
+
+void GameManager::breakBlock(const int x, const int y) {
+    auto [type, texture] = blocks[x][y];
+    if (type == BlockType::AIR || type == BlockType::WATER) return;
+    player->selected = type; // Set the selected block type to the one that was broken
+    blocks[x][y] = {BlockType::AIR, StaticAssets::BLOCK_AIR};
+
+    // Update water
+    if ((y < 31 && blocks[x][y + 1].type == BlockType::WATER) || // aboth
+        (x < worldWidth-1 && blocks[x+1][y].type == BlockType::WATER) || // right
+        (x > 0 && blocks[x-1][y].type == BlockType::WATER)) { // left
+        placeBlock(x, y, BlockType::WATER);
     }
 }
 
@@ -297,10 +326,29 @@ void GameManager::keyCallback(Key key, Action action, Modifier modifier) {
         case Key::LEFT_CONTROL: player->isSprinting = action == Action::PRESS; break;
         case Key::SPACE: player->isJumping = action == Action::PRESS; break;
 
-        case Key::B:
-            if (action != Action::PRESS) break;
+        case Key::Q: {
+            // Mining
+            if (action != Action::PRESS) return;
+            const int breakX = static_cast<int>(std::floor(player->position.x)) + (player->getDirection() ? 1 : -1);
+            const int breakY = static_cast<int>(std::floor(player->position.y));
+            breakBlock(breakX, breakY);
+            return;
+        }
+
+        case Key::E: {
+            // Placing
+            if (action != Action::PRESS) return;
+            const int placeX = static_cast<int>(std::floor(player->position.x)) + (player->getDirection() ? 1 : -1);
+            const int placeY = static_cast<int>(std::floor(player->position.y));
+            placeBlock(placeX, placeY, player->selected);
+            return;
+        }
+
+        case Key::B: {
+            if (action != Action::PRESS) return;
             showHitboxes = !showHitboxes;
-            break;
+            return;
+        }
     }
 }
 } // arcader

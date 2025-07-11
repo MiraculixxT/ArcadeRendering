@@ -71,6 +71,13 @@ public:
      */
     void placeBlock(int x, int y, BlockType type);
 
+    /**
+     * Break a block in the world and updating the surrounding if needed.
+     * @param x coord x
+     * @param y coord y
+     */
+    void breakBlock(int x, int y);
+
     EntityPlayer* getPlayer() const { return player; };
 
     /**

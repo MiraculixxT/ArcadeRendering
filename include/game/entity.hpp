@@ -78,6 +78,7 @@ public:
     bool isPressingLeft = false;
     bool isSprinting = false;
     bool isJumping = false;
+    BlockType selected = BlockType::AIR;
 
     /**
      * Constructor for EntityPlayer.
