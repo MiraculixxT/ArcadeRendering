@@ -15,6 +15,7 @@ namespace arcader {
         loadShader(StaticAssets::SHADER_TILE, "shaders/game_tile.vsh", "shaders/game_tile.fsh");
         loadShader(StaticAssets::SHADER_ENTITY, "shaders/game_entity.vsh", "shaders/game_entity.fsh");
         loadShader(StaticAssets::SHADER_DEBUG, "shaders/debug.vsh", "shaders/debug.fsh");
+        loadShader(StaticAssets::SHADER_POST, "shaders/post_shader.vsh", "shaders/post_shader.fsh");
 
         // Load default textures
         loadTexture(StaticAssets::MISSING_TEXTURE, "assets/textures/missing_texture.png");

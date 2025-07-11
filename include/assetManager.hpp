@@ -63,6 +63,7 @@ namespace arcader {
         SHADER_TILE,
         SHADER_ENTITY,
         SHADER_DEBUG,
+        SHADER_POST,
 
         ARCADE_MACHINE,
         ROOM
