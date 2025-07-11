@@ -5,6 +5,7 @@
 #ifndef ENTITY_HPP
 #define ENTITY_HPP
 #include "assetManager.hpp"
+#include "block.hpp"
 
 namespace arcader {
 
@@ -16,16 +17,18 @@ enum class EntityType {
 class Entity {
 protected:
     int ticksLived;
-    glm::vec2 velocity;
     EntityType type;
     StaticAssets texture;
-    int dimension;
+    float width;
+    float widthHalf;
+    float height;
+    bool direction; // Direction of movement, true for right, false for left
 
 public:
     glm::vec2 position;
+    glm::vec2 velocity;
 
-    Entity(const EntityType type, const int dimension, const glm::vec2& position)
-        : ticksLived(0), velocity(glm::vec2(0.0,0.0)), type(type), texture(getTextureToFromType(type)), dimension(dimension), position(position) {}
+    Entity(EntityType type, float width, float height, const glm::vec2& position);
 
     virtual ~Entity() = default;
 
@@ -33,8 +36,9 @@ public:
      * Pure virtual function for updating the entity's state.
      * Must be implemented by derived classes.
      * @param deltaTime Time elapsed since the last update.
+     * @param blocks all blocks
      */
-    virtual void update(float deltaTime) = 0;
+    virtual void update(float deltaTime, const std::vector<std::vector<Block>>& blocks) = 0;
 
     /**
      * Pure virtual function for rendering the entity.
@@ -46,7 +50,10 @@ public:
 
     virtual EntityType getType() const { return type; }
     virtual StaticAssets getTexture() const { return texture; }
-    virtual int getDimension() const { return dimension; }
+    virtual float getWidth() const { return width; }
+    virtual float getHeight() const { return height; }
+    virtual int getTicksLived() const { return ticksLived; }
+    virtual bool getDirection() const { return direction; }
 
     static StaticAssets getTextureToFromType(const EntityType& type) {
         switch (type) {
@@ -66,22 +73,25 @@ public:
  * Inherits from Entity and implements specific behavior for player entities.
  */
 class EntityPlayer final : public Entity {
-    bool direction; // Direction of movement, true for right, false for left
-
 public:
+    bool isPressingRight = false;
+    bool isPressingLeft = false;
+    bool isSprinting = false;
+    bool isJumping = false;
+
     /**
      * Constructor for EntityPlayer.
      * @param position Initial position of the player.
-     * @param dimension Size of the player entity.
      */
-    EntityPlayer(const glm::vec2& position, const int dimension)
-        : Entity(EntityType::PLAYER, dimension, position), direction(true) {}
+    explicit EntityPlayer(const glm::vec2& position)
+        : Entity(EntityType::PLAYER, 0.6f, 0.9f, position) {}
 
     /**
      * Updates the player's state.
      * @param deltaTime Time elapsed since the last update.
+     * @param blocks
      */
-    void update(float deltaTime) override;
+    void update(float deltaTime, const std::vector<std::vector<Block>>& blocks) override;
 
     /**
      * Renders the player entity.

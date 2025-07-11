@@ -5,6 +5,7 @@
 #include "game/entity.hpp"
 
 #include "framework/app.hpp"
+#include "game/block.hpp"
 
 namespace arcader {
 /*
@@ -18,20 +19,112 @@ StaticAssets Entity::getTextureToFromType(const EntityType &type) {
 }
 */
 
-void EntityPlayer::update(float deltaTime) {
-    // Update position based on velocity and direction
-    position += velocity * deltaTime;
-    ticksLived++;
+Entity::Entity(const EntityType type, const float width, const float height, const glm::vec2 &position):
+    ticksLived(0),
+    type(type),
+    texture(getTextureToFromType(type)),
+    width(width),
+    widthHalf(width / 2.0f),
+    height(height),
+    position(position),
+    direction(false),
+    velocity(vec2(0.0,0.0)) {}
 
-    // Update direction based on velocity
-    if (velocity.x < 0.0f) direction = false; // Moving left
-    else if (velocity.x > 0.0f) direction = true; // Moving right
-    // else keep current direction if standing still
+void EntityPlayer::update(const float deltaTime, const std::vector<std::vector<Block>>& blocks) {
+    constexpr float gravity = -4.0f;
+    constexpr float maxFallSpeed = -5.0f;
+
+    // React to input
+    const int curX = static_cast<int>(std::floor(position.x));
+    const int curY = static_cast<int>(std::floor(position.y));
+    bool isInWater = blocks[curX][curY].type == BlockType::WATER;
+    if (isJumping) {
+        if (isInWater) velocity.y = 1.0f;
+        else if (velocity.y == 0.0f) velocity.y = 3.0f;
+    }
+
+    const float sprintMult = (isSprinting && !isInWater) ? 2.0f : 1.0f;
+    if (isPressingLeft) velocity.x = -1.0f * sprintMult;
+    if (isPressingRight) velocity.x = 1.0f * sprintMult;
+    if (isPressingLeft && isPressingRight) velocity.x = 0.0f; // Pressing both should cancel any movement
+
+
+    // Apply gravity
+    velocity.y += gravity * deltaTime;
+    if (velocity.y < maxFallSpeed) velocity.y = maxFallSpeed;
+
+    // --- Horizontal movement ---
+    float newX = position.x + velocity.x * deltaTime;
+
+    // Sweep horizontally (Y-range = full height)
+    const int startY = static_cast<int>(std::floor(position.y));
+    const int endY = static_cast<int>(std::floor(position.y + height - 0.001f));
+
+    int checkX = static_cast<int>((velocity.x > 0)
+        ? std::floor(newX + widthHalf - 0.001f)
+        : std::floor(newX - widthHalf));
+
+    bool xBlocked = false;
+    for (int y = startY; y <= endY; ++y) {
+        if (BlockStates::isColliding({ checkX, y }, blocks)) {
+            xBlocked = true;
+            break;
+        }
+    }
+
+    if (xBlocked) {
+        velocity.x = 0.0f;
+        newX = position.x;
+    }
+
+
+    // --- Vertical movement ---
+    float newY = position.y + velocity.y * deltaTime;
+
+    const int startX = static_cast<int>(std::floor(newX - widthHalf));
+    const int endX = static_cast<int>(std::floor(newX + widthHalf - 0.001f));
+
+    int checkY = static_cast<int>((velocity.y > 0)
+        ? std::floor(newY + height - 0.001f)
+        : std::floor(newY));
+
+    bool yBlocked = false;
+    for (int x = startX; x <= endX; ++x) {
+        if (BlockStates::isColliding({ x, checkY }, blocks)) {
+            yBlocked = true;
+            break;
+        }
+    }
+
+    if (yBlocked) {
+        velocity.y = 0.0f;
+        newY = position.y;
+    }
+
+
+    // Water friction
+    if (!xBlocked || !yBlocked) {
+        if (isInWater) {
+            velocity.y *= 0.8f;
+        }
+    }
+
+    // Update position
+    position.x = newX;
+    position.y = newY;
+
+    // Update direction
+    if (velocity.x < 0.0f) direction = false;
+    else if (velocity.x > 0.0f) direction = true;
+
+    // Friction
+    velocity.x *= 0.8f;
+    if (std::abs(velocity.x) < 0.01f) velocity.x = 0.0f;
+
+    ticksLived++;
 }
 
-
 void EntityPlayer::render(const glm::mat4 &worldToClip, AssetManager *assets) const {
-    assets->render(texture, worldToClip, glm::vec3(position, 0.0f), glm::vec3(dimension));
 }
 
 bool EntityPlayer::getDirection() const {
