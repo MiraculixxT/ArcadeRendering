@@ -28,12 +28,17 @@ private:
     CinematicEngine cinematicEngine{&assetManager, &gameManager};
 
 public:
-    int screenWidth = 1280;
-    int screenHeight = 720;
+    int screenWidth = 1920;
+    int screenHeight = 1080;
 
-    MainApp() : App(1280, 720) {
+    MainApp() : App(1920, 1080) {
         // GLFW flags
         glfwSetWindowAttrib(window, GLFW_RESIZABLE, GLFW_FALSE);
+        glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+        // Fullscreen
+        GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+        const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+        glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
 
         // OpenGL flags
         glEnable(GL_CULL_FACE);
@@ -67,11 +72,14 @@ public:
      * @param modifier modifier keys (shift, ctrl, alt)
      */
     void keyCallback(Key key, Action action, Modifier modifier) override {
-        if (key == Key::ESC && action == Action::PRESS) App::close();
-        // Toggle GUI with COMMA
-        if (key == Key::COMMA && action == Action::PRESS) {
-            App::imguiEnabled = !App::imguiEnabled;
-        };
+        if (action == Action::PRESS) {
+            switch (key) {
+                case Key::ESC: close(); break;
+                case Key::COMMA: imguiEnabled = !imguiEnabled; break;
+                case Key::RIGHT: changeState(1); break;
+                case Key::LEFT: changeState(-1); break;
+            }
+        }
 
         switch (cinematicEngine.getState()) {
             case 2: // game state
