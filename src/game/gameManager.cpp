@@ -166,10 +166,10 @@ void GameManager::placeBlock(const int x, const int y, const BlockType type) {
     }
 }
 
-void GameManager::update(float deltaTime) {
+void GameManager::update(const float deltaTime) const {
     // Update entities
-    for (const auto &entity : entities) {
-        entity->update(deltaTime);
+    for (auto &entity : entities) {
+        entity->update(deltaTime, blocks);
     }
 }
 
@@ -264,11 +264,19 @@ void GameManager::keyCallback(Key key, Action action, Modifier modifier) {
     auto sModifier = debugModToString(modifier);
     //printf("Key %s \tAction %s \tMod %s\n", sKey.c_str(), sAction.c_str(), sModifier.c_str());
 
+    // Only captcha changes
+    if (action == Action::REPEAT) return;
+
     switch (key) {
-        case Key::D: offset.x += 0.1f; break;
-            case Key::A: offset.x -= 0.1f; break;
-        case Key::W: offset.y += 0.1f; break;
-            case Key::S: offset.y -= 0.1f; break;
+        case Key::D: player->isPressingRight = action == Action::PRESS; break;
+        case Key::A: player->isPressingLeft = action == Action::PRESS; break;
+        case Key::LEFT_CONTROL: player->isSprinting = action == Action::PRESS; break;
+        case Key::SPACE: player->isJumping = action == Action::PRESS; break;
+
+        case Key::B:
+            if (action != Action::PRESS) break;
+            showHitboxes = !showHitboxes;
+            break;
     }
 }
 } // arcader

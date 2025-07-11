@@ -19,7 +19,7 @@ class GameManager {
     /**
      * World block grid with fix x and y size.
      */
-    Block blocks[worldWidth][worldHeight]{};
+    std::vector<std::vector<Block>> blocks;
     static constexpr int blockDimension = 16;
 
     std::vector<std::unique_ptr<Entity>> entities;
@@ -34,6 +34,7 @@ class GameManager {
     Program& entity_shader;
     Program& debugShader;
     Mesh mesh;
+    EntityPlayer* player;
 
 public:
     GameManager(AssetManager *assetsManager, int *height, int *width);
@@ -44,6 +45,8 @@ public:
     float terrainBase;
     float terrainPeak;
     float treeFrequency;
+    int waterLevel = 7;
+    bool showHitboxes = false;
 
     /**
      * Initializes the game world by loading mesh data.
@@ -68,11 +71,13 @@ public:
      */
     void placeBlock(int x, int y, BlockType type);
 
+    EntityPlayer* getPlayer() const { return player; };
+
     /**
      * Updates the game state.
      * @param deltaTime Time elapsed since the last update, used for time-based calculations.
      */
-    void update(float deltaTime);
+    void update(float deltaTime) const;
 
     void renderDebug(Camera &camera);
 
@@ -89,7 +94,6 @@ public:
      * @param modifier modifier keys (shift, ctrl, alt)
      */
     void keyCallback(Key key, Action action, Modifier modifier);
-
 
     static std::string debugKeyToString(Key key) {
         switch (key) {

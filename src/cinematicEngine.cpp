@@ -95,7 +95,7 @@ namespace arcader {
                 }
                 break;
             case 2:
-                // ingame
+                game->update(dt);
                 break;
             case 3:
                 break;
