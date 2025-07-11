@@ -41,10 +41,10 @@ public:
 
     // World generation data
     int seed;
-    float frequency;
-    float terrainBase;
-    float terrainPeak;
-    float treeFrequency;
+    float frequency = 0.03f;
+    float terrainBase = 0.0f;
+    float terrainPeak = 100.0f;
+    float treeFrequency = 0.15f;
     int waterLevel = 7;
     bool showHitboxes = false;
 

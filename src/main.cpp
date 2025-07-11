@@ -112,7 +112,7 @@ public:
         int currentState = cinematicEngine.getState();
         ImGui::SliderInt("State", &currentState, 0, 5);
 
-        if( ImGui::Button("Next State")) {
+        if (ImGui::Button("Next State")) {
             changeState(1);
         }
 
@@ -121,39 +121,42 @@ public:
         }
         ImGui::End();
 
-        ImGui::Begin("World Generation", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-        if (ImGui::Button("Seed Randomize")) {
-            std::random_device rd;
-            gameManager.seed = rd();
-            gameManager.generateTerrain();
-            gameManager.generateTrees();
+        if (gameManager.getPlayer()) { // Only show when game is initialized
+            ImGui::Begin("Game Management", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+            if (ImGui::Button("Seed Randomize")) {
+                std::random_device rd;
+                gameManager.seed = rd();
+                gameManager.generateTerrain();
+                gameManager.generateTrees();
+            }
+            if (ImGui::SliderFloat("Frequency", &gameManager.frequency, 0.01f, 0.1f)) {
+                gameManager.generateTerrain();
+                gameManager.generateTrees();
+            }
+            if (ImGui::SliderFloat("Mod Base", &gameManager.terrainBase, 0.0f, 100.0f)) {
+                gameManager.generateTerrain();
+                gameManager.generateTrees();
+            }
+            if (ImGui::SliderFloat("Mod Peak", &gameManager.terrainPeak, 100.0f, 300.0f)) {
+                gameManager.generateTerrain();
+                gameManager.generateTrees();
+            }
+            if (ImGui::SliderFloat("Tree Frequency", &gameManager.treeFrequency, 0.01f, 1.0f)) {
+                gameManager.generateTerrain();
+                gameManager.generateTrees();
+            }
+            if (ImGui::SliderInt("Water Level", &gameManager.waterLevel, 0, 31)) {
+                gameManager.generateTerrain();
+                gameManager.generateTrees();
+            }
+
+            const vec2 playerPos = gameManager.getPlayer()->position;
+            const vec2 playerVel = gameManager.getPlayer()->velocity;
+            ImGui::Text("Pos: (%.2f, %.2f) - Vel: (%.2f, %.2f)", playerPos.x, playerPos.y, playerVel.x, playerVel.y);
+            auto player = gameManager.getPlayer();
+            ImGui::Text("Key: A:%d | D:%d | SPRNT: %d", player->isPressingLeft, player->isPressingRight, player->isSprinting);
+            ImGui::End();
         }
-        if (ImGui::SliderFloat("Frequency", &gameManager.frequency, 0.01f, 0.1f)) {
-            gameManager.generateTerrain();
-            gameManager.generateTrees();
-        }
-        if (ImGui::SliderFloat("Mod Base", &gameManager.terrainBase, 0.0f, 100.0f)) {
-            gameManager.generateTerrain();
-            gameManager.generateTrees();
-        }
-        if (ImGui::SliderFloat("Mod Peak", &gameManager.terrainPeak, 100.0f, 300.0f)) {
-            gameManager.generateTerrain();
-            gameManager.generateTrees();
-        }
-        if (ImGui::SliderFloat("Tree Frequency", &gameManager.treeFrequency, 0.01f, 1.0f)) {
-            gameManager.generateTerrain();
-            gameManager.generateTrees();
-        }
-        if (ImGui::SliderInt("Water Level", &gameManager.waterLevel, 0, 31)) {
-            gameManager.generateTerrain();
-            gameManager.generateTrees();
-        }
-        const vec2 playerPos = gameManager.getPlayer()->position;
-        const vec2 playerVel = gameManager.getPlayer()->velocity;
-        ImGui::Text("Pos: (%.2f, %.2f) - Vel: (%.2f, %.2f)", playerPos.x, playerPos.y, playerVel.x, playerVel.y);
-        auto player = gameManager.getPlayer();
-        ImGui::Text("Key: A:%d | D:%d | SPRNT: %d", player->isPressingLeft, player->isPressingRight, player->isSprinting);
-        ImGui::End();
     }
 };
 
