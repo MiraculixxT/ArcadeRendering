@@ -48,7 +48,26 @@ public:
      */
     static StaticAssets getTextureToFromType(const BlockType &type);
 
+    /**
+     * Gets the enums name of textures for debug purposes.
+     */
     static std::string getTextureName(const BlockType &type);
+
+    /**
+     * Check if the block type is solid or if entities can pass through it.
+     */
+    static bool isSolid(const BlockType &type);
+
+    /**
+     * Checks if a position collides with any solid blocks in the world.
+     */
+    static bool isColliding(const glm::vec2& pos, const std::vector<std::vector<Block>>& blocks);
+
+    /**
+     * Get the first block from top to bottom that is not air.
+     * @param ignoreLeaves Useful for placing the player under trees, not on top
+#     */
+    static int getHighestBlock(bool ignoreLeaves, int x, const std::vector<std::vector<Block>>& blocks);
 };
 } // arcader
 
