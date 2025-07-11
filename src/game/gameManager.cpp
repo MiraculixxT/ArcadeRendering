@@ -243,18 +243,31 @@ void GameManager::render(Camera &camera) {
     }
 
     // --- Render Entities ---
-    entity_shader.use();
-    entity_shader.set("u_Texture", 0); // bind once
-
     for (const auto& entity : entities) {
-        // vec3 entityPos3D = tilemapOrigin + vec3(entity->position, 0.0f);
-        // mat4 model = translate(mat4(1.0f), entityPos3D);
-        // model = scale(model, vec3(entity->getDimension(), entity->getDimension(), 1.0f));
-        // mat4 mvp = projection * view * model;
-        //
-        // entity_shader.set("u_MVP", mvp);
-        // glBindTexture(GL_TEXTURE_2D, assets->getTexture(entity->getTexture()).handle);
-        // entity->render(mvp, assets);
+        entity_shader.use();
+        entity_shader.set("u_Texture", 0);
+        entity_shader.set("u_FlipX", entity->getDirection());
+
+        vec3 worldPos = vec3(entity->position - vec2(0.5, 0.0), 0.01f);
+        mat4 model = translate(mat4(1.0f), worldPos);
+        mat4 mvp = projection * view * model;
+
+        entity_shader.set("u_MVP", mvp);
+        entity_shader.set("u_Time", entity->getTicksLived());
+        glBindTexture(GL_TEXTURE_2D, assets->getTexture(entity->getTexture()).handle);
+        //entity->render(mvp, assets);
+        mesh.draw();
+
+        // ---- Debug ----
+        if (!showHitboxes) continue;
+        debugShader.use();
+        debugShader.set("u_Color", vec4(1.0f, 0.0f, 0.0f, 0.8f));
+        vec3 worldPos2 = vec3(entity->position - vec2(entity->getWidth() / 2.0f, 0.0), 0.02f);
+        mat4 model2 = translate(mat4(1.0f), worldPos2);
+        model2 = scale(model2, vec3(entity->getWidth(), entity->getHeight(), 1.0f));
+        mat4 mvp2 = projection * view * model2;
+        debugShader.set("u_MVP", mvp2);
+        mesh.draw();
     }
 }
 

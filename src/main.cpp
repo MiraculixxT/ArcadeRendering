@@ -52,6 +52,14 @@ public:
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // better decide between black (uncolored) squares and bg
     }
 
+    void changeState(const int offset) {
+        cinematicEngine.setState(cinematicEngine.getState() + offset);
+        printf("Switched to state: %d\n", cinematicEngine.getState());
+        if (cinematicEngine.getState() == 2) {
+            gameManager.init();
+        }
+    }
+
     /**
      * Handle keyboard & mouse button inputs
      * @param key pressed key
@@ -97,15 +105,11 @@ public:
         ImGui::SliderInt("State", &currentState, 0, 5);
 
         if( ImGui::Button("Next State")) {
-            cinematicEngine.setState(currentState+1);
-            printf("Switched to state: %d\n", cinematicEngine.getState());
-            if (cinematicEngine.getState() == 2) {
-                gameManager.init();
-            }
+            changeState(1);
         }
 
         if (ImGui::Button("Previous State")) {
-            cinematicEngine.setState(currentState-1);
+            changeState(-1);
         }
         ImGui::End();
 
@@ -114,20 +118,33 @@ public:
             std::random_device rd;
             gameManager.seed = rd();
             gameManager.generateTerrain();
+            gameManager.generateTrees();
         }
         if (ImGui::SliderFloat("Frequency", &gameManager.frequency, 0.01f, 0.1f)) {
             gameManager.generateTerrain();
+            gameManager.generateTrees();
         }
         if (ImGui::SliderFloat("Mod Base", &gameManager.terrainBase, 0.0f, 100.0f)) {
             gameManager.generateTerrain();
+            gameManager.generateTrees();
         }
         if (ImGui::SliderFloat("Mod Peak", &gameManager.terrainPeak, 100.0f, 300.0f)) {
             gameManager.generateTerrain();
+            gameManager.generateTrees();
         }
         if (ImGui::SliderFloat("Tree Frequency", &gameManager.treeFrequency, 0.01f, 1.0f)) {
             gameManager.generateTerrain();
             gameManager.generateTrees();
         }
+        if (ImGui::SliderInt("Water Level", &gameManager.waterLevel, 0, 31)) {
+            gameManager.generateTerrain();
+            gameManager.generateTrees();
+        }
+        const vec2 playerPos = gameManager.getPlayer()->position;
+        const vec2 playerVel = gameManager.getPlayer()->velocity;
+        ImGui::Text("Pos: (%.2f, %.2f) - Vel: (%.2f, %.2f)", playerPos.x, playerPos.y, playerVel.x, playerVel.y);
+        auto player = gameManager.getPlayer();
+        ImGui::Text("Key: A:%d | D:%d | SPRNT: %d", player->isPressingLeft, player->isPressingRight, player->isSprinting);
         ImGui::End();
     }
 };

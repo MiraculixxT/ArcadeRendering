@@ -1,12 +1,18 @@
 #version 330 core
-layout (location = 0) in vec2 aPos;
+
+layout (location = 0) in vec3 aPosition;
 layout (location = 1) in vec2 aTexCoord;
+layout (location = 2) in vec3 aNormal;
 
+// Uniforms
 uniform mat4 u_MVP;
+uniform int u_Time;
+uniform bool u_FlipX;
 
-out vec2 texCoord;
+// Output to fragment shader
+out vec2 vTexCoord;
 
 void main() {
-    gl_Position = u_MVP * vec4(aPos, 0.0, 1.0);
-    texCoord = aTexCoord;
+    gl_Position = u_MVP * vec4(aPosition, 1.0);
+    vTexCoord = aTexCoord;
 }

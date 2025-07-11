@@ -1,16 +1,16 @@
 #version 330 core
 
-layout(location = 0) in vec3 position;
-layout(location = 2) in vec3 normal;
+layout (location = 0) in vec3 aPosition;
+layout (location = 1) in vec2 aTexCoord;
+layout (location = 2) in vec3 aNormal;
 
-uniform mat4 uLocalToClip;
-uniform mat4 uLocalToWorld;
+// Uniforms
+uniform mat4 u_MVP;
 
-out vec3 interpNormal;
-out vec3 worldPosition;
+// Output to fragment shader
+out vec2 vTexCoord;
 
 void main() {
-    gl_Position = uLocalToClip * vec4(position, 1.0);
-    worldPosition = (uLocalToWorld * vec4(position, 1.0)).xyz;
-    interpNormal = (uLocalToWorld * vec4(normal, 0.0)).xyz;
+    gl_Position = u_MVP * vec4(aPosition, 1.0);
+    vTexCoord = aTexCoord;
 }
