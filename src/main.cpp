@@ -155,6 +155,17 @@ public:
             ImGui::Text("Pos: (%.2f, %.2f) - Vel: (%.2f, %.2f)", playerPos.x, playerPos.y, playerVel.x, playerVel.y);
             auto player = gameManager.getPlayer();
             ImGui::Text("Key: A:%d | D:%d | SPRNT: %d", player->isPressingLeft, player->isPressingRight, player->isSprinting);
+
+            ImGui::BeginChild("Retro Shader Settings", ImVec2(0, 0), ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_Border);
+            ImGui::Text("--- Retro Shader Settings ---");
+
+            ImGui::SliderFloat("Color Levels", &gameManager.retroShaderData.colorLevels, 1.0f, 10.0f);
+            ImGui::SliderFloat("Noise Strength", &gameManager.retroShaderData.noiseStrength, 0.0f, 0.3f);
+            ImGui::SliderFloat("Noise Scale", &gameManager.retroShaderData.noiseScale, 1.0f, 20.0f);
+            ImGui::SliderFloat("Scanline Strength", &gameManager.retroShaderData.scanlineStrength, 0.0f, 1.0f);
+            ImGui::SliderFloat("Scanline Frequency", &gameManager.retroShaderData.scanlineFrequency, 0.0f, 1.0f);
+
+            ImGui::EndChild();
             ImGui::End();
         }
     }

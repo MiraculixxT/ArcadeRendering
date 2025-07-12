@@ -259,10 +259,18 @@ void GameManager::render(Camera &camera) {
         cameraTarget, // look at center
         vec3(0.0f, 1.0f, 0.0f) // up direction
     );
+    float time = glfwGetTime();
 
     
     // --- Render Blocks ---
     tile_shader.use();
+    tile_shader.set("colorLevels", retroShaderData.colorLevels);
+    tile_shader.set("noiseStrength", retroShaderData.noiseStrength);
+    tile_shader.set("noiseScale", retroShaderData.noiseScale);
+    tile_shader.set("scanlineStrength", retroShaderData.scanlineStrength);
+    tile_shader.set("scanlineFrequency", retroShaderData.scanlineFrequency);
+    tile_shader.set("u_Texture", 0);
+
     for (int y = 0; y < worldHeight; ++y) {
         for (int x = 0; x < worldWidth; ++x) {
             auto& [type, texture] = blocks[x][y];
@@ -274,7 +282,7 @@ void GameManager::render(Camera &camera) {
             mat4 mvp = projection * view * model;
 
             tile_shader.set("u_MVP", mvp);
-            tile_shader.set("u_Texture", 0);
+            tile_shader.set("u_Time", time);
 
             GLuint texID = assets->getTexture(texture).handle;
             glBindTexture(GL_TEXTURE_2D, texID);
