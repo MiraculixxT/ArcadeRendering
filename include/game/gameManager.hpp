@@ -13,6 +13,14 @@
 #include "framework/gl/program.hpp"
 
 namespace arcader {
+struct RetroShaderData {
+    float colorLevels = 6.0f;
+    float noiseStrength = 0.05f;
+    float noiseScale = 3.47f;
+    float scanlineStrength = 0.255f;
+    float scanlineFrequency = 0.25f;
+};
+
 class GameManager {
     static constexpr int worldWidth = 32;
     static constexpr int worldHeight = 32;
@@ -34,7 +42,7 @@ class GameManager {
     Program& entity_shader;
     Program& debugShader;
     Mesh mesh;
-    EntityPlayer* player;
+    EntityPlayer* player = nullptr;
 
 public:
     GameManager(AssetManager *assetsManager, int *height, int *width);
@@ -47,6 +55,7 @@ public:
     float treeFrequency = 0.15f;
     int waterLevel = 7;
     bool showHitboxes = false;
+    RetroShaderData retroShaderData;
 
     /**
      * Initializes the game world by loading mesh data.
