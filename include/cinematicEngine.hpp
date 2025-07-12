@@ -11,6 +11,7 @@
 #include "lightingSystem.hpp"
 #include "game/gameManager.hpp"
 #include "dustParticles.hpp"
+#include "audioPlayer.hpp"
 
 /**
  * @brief Controls cinematic sequences including timed camera movement and rendering transitions.
@@ -71,6 +72,8 @@ namespace arcader {
 
         Program dustShader;
         GLuint dustTexture;
+
+        AudioPlayer audioPlayer;
 
         GLuint depthMapFBO;
         GLuint depthMap;

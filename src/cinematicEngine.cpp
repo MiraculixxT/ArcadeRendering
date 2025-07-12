@@ -6,7 +6,6 @@
 #include "lightingSystem.hpp"
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
-#include "dustParticles.hpp"
 
 
 namespace arcader {
@@ -25,6 +24,9 @@ namespace arcader {
 
         // Shadow
         initShadow();
+
+        // init audio player
+        audioPlayer.init();
 
         // init camera
         camera.resize(static_cast<float>(windowWidth) / windowHeight);
@@ -87,6 +89,12 @@ namespace arcader {
                         lighting.setPointLightIntensity(i, 0.0f);
                     }
                 } else if (timer < 12.0f) {
+
+                    if(!audioPlayer.isPlaying("assets/sounds/lightflicker.wav")) {
+                        printf("Playing light flicker sound\n");
+                        audioPlayer.play("assets/sounds/lightflicker.wav", 0.5f);
+                    }
+
                     // light flickering
                     for (int i = 0; i < 3; ++i) {
                         float activationTime = 7.0f + i * 2.0f;
@@ -97,9 +105,9 @@ namespace arcader {
                             float flicker = (sin(t) > 0.6f) ? 2.5f :
                                             (sin(t * 0.7f) > 0.3f) ? 1.2f :
                                             (rand() % 100 < 10) ? 0.5f : 0.0f;
-                            lighting.setPointLightIntensity(i, flicker);
-                        } else {
+                            lighting.setPointLightIntensity(i, flicker);} else {
                             lighting.setPointLightIntensity(i, 2.5f);
+
                         }
                     }
 
@@ -110,6 +118,7 @@ namespace arcader {
                 } else {
                     setState(1);
                 }
+
             } break;
             case 1: {
                 dustParticles.update(dt);
