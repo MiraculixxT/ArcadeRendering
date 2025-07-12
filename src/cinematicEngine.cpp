@@ -52,6 +52,10 @@ namespace arcader {
     void CinematicEngine::update(float deltaTime) {
         timer += deltaTime;
         updateScene(state, deltaTime);
+        if(!audioPlayer.isPlaying("assets/sounds/emptyroom.wav")) {
+            printf("Playing room sound\n");
+            audioPlayer.play("assets/sounds/emptyroom.wav", 0.2f);
+        }
     }
 
     void CinematicEngine::render() {
@@ -139,6 +143,7 @@ namespace arcader {
 
                 if (glm::length(camera.worldPosition - targetCamPos) < 0.01f) {
                     setState(2);
+                    audioPlayer.play("assets/sounds/activate.wav", 0.5f);
                     game->init();
                 }
 
