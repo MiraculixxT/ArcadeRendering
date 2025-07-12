@@ -42,6 +42,9 @@ namespace arcader {
         void initSkybox();
         void renderSkybox();
 
+        void initShadow();
+        void renderShadowPass();
+
         const int windowWidth = 1280;
         const int windowHeight = 720;
         Mesh mesh;
@@ -64,7 +67,11 @@ namespace arcader {
         Camera camera;
         LightingSystem lighting;
 
-        // Optional: animation interpolation helpers
+        GLuint depthMapFBO;
+        GLuint depthMap;
+        Program depthShader;
+        glm::mat4 lightSpaceMatrix;
+        const GLuint SHADOW_WIDTH = 8192, SHADOW_HEIGHT = 8192;
     };
 
 }

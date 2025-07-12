@@ -8,6 +8,10 @@ in vec3 fragWorldPos;
 uniform vec3 uLightDirection;
 uniform vec3 uLightColor;
 uniform vec3 uAmbientColor;
+
+uniform sampler2D uShadowMap;
+uniform mat4 uLightSpaceMatrix;
+
 const int MAX_POINT_LIGHTS = 8;
 uniform int uNumPointLights;
 uniform struct {
@@ -51,5 +55,21 @@ void main() {
         }
     }
 
-    fragColor = vec4(ambient + diffuse + pointLightResult, texColor.a);
-}
+    vec4 fragPosLight = uLightSpaceMatrix * vec4(fragWorldPos, 1.0);
+    vec3 projCoords = fragPosLight.xyz / fragPosLight.w;
+    projCoords = projCoords * 0.5 + 0.5;
+
+    float closestDepth = texture(uShadowMap, projCoords.xy).r;
+    float currentDepth = projCoords.z;
+    float bias = max(0.00001 * (1.0 - dot(normal, lightDir)), 0.00025);
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / textureSize(uShadowMap, 0);
+    for (int x = -1; x <= 1; ++x) {
+        for (int y = -1; y <= 1; ++y) {
+            float pcfDepth = texture(uShadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
+            shadow += (currentDepth - bias > pcfDepth) ? 0.4 : 1.0;
+        }
+    }
+    shadow /= 9.0;
+
+    fragColor = vec4((ambient + (diffuse + pointLightResult) * shadow), texColor.a);}

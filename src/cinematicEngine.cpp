@@ -14,13 +14,16 @@ namespace arcader {
             : state(0), timer(0.0f), assets(assets), camera(), game(gameManager) {
 
         lighting.init(
-                glm::vec3(0.02f, 0.02f, 0.05f),             // ambientColor (dunkelblau)
-                glm::vec3(-0.2f, -1.0f, -0.1f),             // lightDir (flach und schwach)
-                glm::vec3(0.1f, 0.2f, 0.4f)                 // lightColor (kühles Blau)
+                glm::vec3(0.02f, 0.03f, 0.05f),             // ambientColor
+                glm::vec3(0.0f, -1.0f, -1.0f),               // lightDir (toward camera)
+                glm::vec3(0.1f, 0.2f, 0.4f)                 // lightColor
         );
 
         //Skybox
         initSkybox();
+
+        // Shadow
+        initShadow();
 
     }
 
@@ -56,7 +59,7 @@ namespace arcader {
         // Implement scene-specific updates here
         switch (state) {
             case 0: {
-                lighting.update(glm::vec3(-0.0f, 1.0f, -0.0f), glm::vec3(0.1f, 0.15f, 0.25f)); // static light direction and color
+                lighting.update(glm::vec3(0.0f, -1.0f, -1.0f), glm::vec3(0.1f, 0.15f, 0.25f)); // static light direction and color
 
                 if (timer < 7.0f) {
                     // all lights off
@@ -65,8 +68,7 @@ namespace arcader {
                     }
                 } else if (timer < 12.0f) {
                     // light flickering
-                    for (int i = 0; i < lighting.getPointLights().size(); ++i) {
-                        // random arcade, value between 0 and number of lights
+                    for (int i = 0; i < 3; ++i) {
                         float activationTime = 7.0f + i * 2.0f;
                         if (timer < activationTime) {
                             lighting.setPointLightIntensity(i, 0.0f);
@@ -90,8 +92,8 @@ namespace arcader {
                 }
             } break;
             case 1:
-                for (int i = 0; i < lighting.getPointLights().size(); ++i) {
-                    lighting.setPointLightIntensity(i, 2.5f);
+                for (int i = 0; i < 3; ++i) {
+                    lighting.setPointLightIntensity(i, 2.5f); // last row lights on
                 }
                 break;
             case 2:
@@ -131,6 +133,8 @@ namespace arcader {
 
     void CinematicEngine::renderArcade() {
         renderSkybox();
+
+        renderShadowPass();
 
         camera.resize(static_cast<float>(windowWidth) / windowHeight);
         camera.worldPosition = {0.0f, 61.0f, 10.0f};
@@ -174,6 +178,12 @@ namespace arcader {
             Program &arcadeShader = const_cast<Program &>(assets->getShader(ARCADE_MACHINE));
             lighting.bindToShader(arcadeShader);
             lighting.bindPointLightsToShader(arcadeShader);
+
+            arcadeShader.use();
+            arcadeShader.set("uShadowMap", 1);
+            arcadeShader.set("uLightSpaceMatrix", lightSpaceMatrix);
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, depthMap);
 
             assets->render(
                     ARCADE_MACHINE,
@@ -231,6 +241,15 @@ namespace arcader {
             Program &roomShader = const_cast<Program &>(assets->getShader(ROOM));
             lighting.bindToShader(roomShader);
             lighting.bindPointLightsToShader(roomShader);
+
+            roomShader.use();
+            roomShader.set("uShadowMap", 1);
+            roomShader.set("uLightSpaceMatrix", lightSpaceMatrix);
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, depthMap);
+
+
+
             assets->render(
                     ROOM,
                     camera.projectionMatrix * camera.viewMatrix,
@@ -241,6 +260,102 @@ namespace arcader {
         }
     }
 
+    void CinematicEngine::renderShadowPass() {
+        // Save current viewport
+        GLint prevViewport[4];
+        glGetIntegerv(GL_VIEWPORT, prevViewport);
+        glm::vec3 lightDir = glm::normalize(glm::vec3(0.0f, -1.0f, 1.0f));
+
+        glm::mat4 lightProjection = glm::ortho(-50.f, 50.f, -50.f, 50.f, 1.0f, 150.f);
+        glm::mat4 lightView = glm::lookAt(-lightDir * 50.0f, glm::vec3(0.0f), glm::vec3(0, 1, 0));
+        lightSpaceMatrix = lightProjection * lightView;
+
+        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        glCullFace(GL_FRONT);
+
+        depthShader.use();
+        depthShader.set("uLightSpaceMatrix", lightSpaceMatrix);
+
+        using enum StaticAssets;
+
+        int x = 4;
+        for (int i = 1; i < 3; ++i) {
+
+            assets->render(
+                    ARCADE_MACHINE,
+                    lightSpaceMatrix,
+                    glm::vec3(-2.0f, 60.0f, x),
+                    glm::vec3(0.5f)
+            );
+
+            assets->render(
+                    ARCADE_MACHINE,
+                    lightSpaceMatrix,
+                    glm::vec3(2.0f, 60.0f, x),
+                    glm::vec3(0.5f)
+            );
+
+            assets->render(
+                    ARCADE_MACHINE,
+                    lightSpaceMatrix,
+                    glm::vec3(-4.0f, 60.0f, x),
+                    glm::vec3(0.5f)
+            );
+
+            assets->render(
+                    ARCADE_MACHINE,
+                    lightSpaceMatrix,
+                    glm::vec3(4.0f, 60.0f, x),
+                    glm::vec3(0.5f)
+            );
+
+            x+=4;
+        }
+
+        /*if (assets->hasRenderable(ROOM)) {
+            assets->render(
+                    ROOM,
+                    lightSpaceMatrix,
+                    glm::vec3(-5.0f, 60.0f, 11.0f), // Room center
+                    glm::vec3(0.06f) // Scale
+            );
+        }
+        */
+
+        glCullFace(GL_BACK);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        // Restore previous viewport
+        glViewport(prevViewport[0], prevViewport[1], prevViewport[2], prevViewport[3]);
+    }
+
+    void CinematicEngine::initShadow() {
+        GLint prevViewport[4];
+        glGetIntegerv(GL_VIEWPORT, prevViewport);
+
+        glGenFramebuffers(1, &depthMapFBO);
+
+        glGenTextures(1, &depthMap);
+        glBindTexture(GL_TEXTURE_2D, depthMap);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+                     SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+        float borderColor[] = {1.0, 1.0, 1.0, 1.0};
+        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+        glDrawBuffer(GL_NONE);
+        glReadBuffer(GL_NONE);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(prevViewport[0], prevViewport[1], prevViewport[2], prevViewport[3]);
+
+        depthShader.load("shaders/depth.vsh", "shaders/depth.fsh");
+    }
 
     GLuint CinematicEngine::loadCubemap(const std::vector<std::string>& faces) {
         GLuint textureID;
