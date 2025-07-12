@@ -6,6 +6,7 @@
 #include "lightingSystem.hpp"
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
+#include "dustParticles.hpp"
 
 
 namespace arcader {
@@ -30,6 +31,20 @@ namespace arcader {
         camera.worldPosition = {0.0f, 60.5f, 10.0f};
         camera.target = {0.0f, 60.0f, 0.0f};
         camera.update();
+
+        // Particles
+        dustShader.load("shaders/dust.vsh", "shaders/dust.fsh");
+        // Dummy white texture for dust particles
+        GLuint whiteTex;
+        glGenTextures(1, &whiteTex);
+        glBindTexture(GL_TEXTURE_2D, whiteTex);
+        unsigned char whitePixel[] = {255, 255, 255, 255};
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, whitePixel);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        this->dustTexture = whiteTex;
+        dustParticles.init(1000, 30.0f);
+
     }
 
     void CinematicEngine::update(float deltaTime) {
@@ -64,8 +79,8 @@ namespace arcader {
         // Implement scene-specific updates here
         switch (state) {
             case 0: {
+                dustParticles.update(dt);
                 lighting.update(glm::vec3(0.0f, -1.0f, -1.0f), glm::vec3(0.1f, 0.15f, 0.25f)); // static light direction and color
-
                 if (timer < 7.0f) {
                     // all lights off
                     for (int i = 0; i < lighting.getPointLights().size(); ++i) {
@@ -97,6 +112,8 @@ namespace arcader {
                 }
             } break;
             case 1: {
+                dustParticles.update(dt);
+
                 glm::vec3 targetCamPos = glm::vec3(0.0f, 62.4f, 0.75f);
                 glm::vec3 targetLookAt = glm::vec3(0.0f, 62.2f, 0.0f);
 
@@ -272,6 +289,27 @@ namespace arcader {
                     glm::vec3(-5.0f, 60.0f, 11.0f), // Room center
                     glm::vec3(0.06f) // Scale
             );
+
+            // Render dust particles
+            dustShader.use();
+            dustShader.set("uView", camera.viewMatrix);
+            dustShader.set("uProj", camera.projectionMatrix);
+            dustShader.set("uCameraRight", glm::vec3(camera.viewMatrix[0]));
+            dustShader.set("uCameraUp", glm::vec3(camera.viewMatrix[1]));
+            dustShader.set("uSize", 0.25f);
+
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glDisable(GL_DEPTH_TEST);
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, dustTexture);
+            dustShader.set("uTex", 0);
+            dustShader.set("uSize", 0.05f);
+            dustShader.set("uAlpha", 0.1f);
+            dustParticles.render();
+
+            glEnable(GL_DEPTH_TEST);
 
         }
     }

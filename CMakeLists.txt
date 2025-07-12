@@ -13,6 +13,8 @@ set(SRC
         src/cinematicEngine.cpp
         src/lightingSystem.cpp
         ${INCLUDE_FILES}
+        include/dustParticles.hpp
+        src/dustParticles.cpp
 )
 
 # Fetch framework

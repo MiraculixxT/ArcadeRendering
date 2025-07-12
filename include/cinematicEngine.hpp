@@ -10,6 +10,7 @@
 #include <memory>
 #include "lightingSystem.hpp"
 #include "game/gameManager.hpp"
+#include "dustParticles.hpp"
 
 /**
  * @brief Controls cinematic sequences including timed camera movement and rendering transitions.
@@ -66,6 +67,10 @@ namespace arcader {
         GameManager *game;
         Camera camera;
         LightingSystem lighting;
+        DustParticles dustParticles;
+
+        Program dustShader;
+        GLuint dustTexture;
 
         GLuint depthMapFBO;
         GLuint depthMap;
