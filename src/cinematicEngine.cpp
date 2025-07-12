@@ -25,6 +25,11 @@ namespace arcader {
         // Shadow
         initShadow();
 
+        // init camera
+        camera.resize(static_cast<float>(windowWidth) / windowHeight);
+        camera.worldPosition = {0.0f, 60.5f, 10.0f};
+        camera.target = {0.0f, 60.0f, 0.0f};
+        camera.update();
     }
 
     void CinematicEngine::update(float deltaTime) {
@@ -91,11 +96,27 @@ namespace arcader {
                     setState(1);
                 }
             } break;
-            case 1:
+            case 1: {
+                glm::vec3 targetCamPos = glm::vec3(0.0f, 62.4f, 0.75f);
+                glm::vec3 targetLookAt = glm::vec3(0.0f, 62.2f, 0.0f);
+
+                // slow start
+                float progress = glm::clamp(timer / 4.0f, 0.0f, 1.0f);
+                float speed = progress * 0.005f;
+                camera.worldPosition = glm::mix(camera.worldPosition, targetCamPos, speed);
+                camera.target = glm::mix(camera.target, targetLookAt, speed);
+                camera.update();
+
                 for (int i = 0; i < 3; ++i) {
                     lighting.setPointLightIntensity(i, 2.5f); // last row lights on
                 }
-                break;
+
+                if (glm::length(camera.worldPosition - targetCamPos) < 0.01f) {
+                    setState(2);
+                    game->init();
+                }
+
+            } break;
             case 2:
                 game->update(dt);
                 break;
@@ -135,11 +156,6 @@ namespace arcader {
         renderSkybox();
 
         renderShadowPass();
-
-        camera.resize(static_cast<float>(windowWidth) / windowHeight);
-        camera.worldPosition = {0.0f, 61.0f, 10.0f};
-        camera.target = {0.0f, 60.0f, 0.0f};
-        camera.update();
 
         // place point lights
         if (lighting.getPointLights().empty()) {
