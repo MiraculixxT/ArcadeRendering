@@ -267,14 +267,15 @@ void GameManager::render(Camera &camera) {
     auto time = static_cast<float>(glfwGetTime());
 
     // --- Render Background ---
-    hudShader.use();
+    tileShader.use();
     mat4 bgModel = translate(mat4(1.0f), vec3(offsetX, 0.0f, 0.0f));
     bgModel = scale(bgModel, vec3(relativeOffset, worldHeight, 1.0f));
     mat4 bgMVP = projection * view * bgModel;
 
-    hudShader.set("u_MVP", bgMVP);
-    hudShader.set("u_Time", time);
-    hudShader.set("u_Texture", 0);
+    tileShader.set("u_MVP", bgMVP);
+    tileShader.set("u_Time", time);
+    tileShader.set("u_Static", true);
+    tileShader.set("u_Texture", 0);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, assets->getTexture(StaticAssets::BACKGROUND).handle);
@@ -288,6 +289,7 @@ void GameManager::render(Camera &camera) {
     tileShader.set("scanlineStrength", retroShaderData.scanlineStrength);
     tileShader.set("scanlineFrequency", retroShaderData.scanlineFrequency);
     tileShader.set("u_Texture", 0);
+    tileShader.set("u_Static", false);
 
     for (int y = 0; y < worldHeight; ++y) {
         for (int x = 0; x < worldWidth; ++x) {
@@ -343,6 +345,7 @@ void GameManager::render(Camera &camera) {
     model = scale(model, vec3(2.5f));
     mat4 mvp = projection * view * model;
 
+    tileShader.set("noiseStrength", retroShaderData.noiseStrength * 0.25f); // Less noise on HUD
     tileShader.set("u_MVP", mvp);
     tileShader.set("u_Time", time);
 
@@ -355,6 +358,7 @@ void GameManager::render(Camera &camera) {
         model = translate(mat4(1.0f), hudPos);
         model = scale(model, vec3(1.5f));
         mvp = projection * view * model;
+        tileShader.set("noiseStrength", retroShaderData.noiseStrength);
         tileShader.set("u_MVP", mvp);
 
         texID = assets->getTexture(BlockStates::getTextureToFromType(player->selected)).handle;
