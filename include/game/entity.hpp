@@ -48,12 +48,12 @@ public:
      */
     virtual void render(const glm::mat4 &worldToClip, AssetManager *assets) const {}
 
-    virtual EntityType getType() const { return type; }
-    virtual StaticAssets getTexture() const { return texture; }
-    virtual float getWidth() const { return width; }
-    virtual float getHeight() const { return height; }
-    virtual int getTicksLived() const { return ticksLived; }
-    virtual bool getDirection() const { return direction; }
+    [[nodiscard]] virtual EntityType getType() const { return type; }
+    [[nodiscard]] virtual StaticAssets getTexture() const { return texture; }
+    [[nodiscard]] virtual float getWidth() const { return width; }
+    [[nodiscard]] virtual float getHeight() const { return height; }
+    [[nodiscard]] virtual int getTicksLived() const { return ticksLived; }
+    [[nodiscard]] virtual bool getDirection() const { return direction; }
 
     static StaticAssets getTextureToFromType(const EntityType& type) {
         switch (type) {
@@ -107,7 +107,7 @@ public:
      * Gets the current direction of the player.
      * @return Current direction vector.
      */
-    bool getDirection() const;
+    [[nodiscard]] bool getDirection() const override;
 
     [[nodiscard]] glm::uvec2 getTargetPosition() const;
 };

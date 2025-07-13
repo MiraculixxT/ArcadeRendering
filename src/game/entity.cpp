@@ -27,8 +27,8 @@ Entity::Entity(const EntityType type, const float width, const float height, con
     width(width),
     widthHalf(width / 2.0f),
     height(height),
-    position(position),
     direction(false),
+    position(position),
     velocity(vec2(0.0,0.0)) {}
 
 bool canJump = true;
@@ -40,7 +40,7 @@ void EntityPlayer::update(const float deltaTime, const std::vector<std::vector<B
     // React to input
     const int curX = static_cast<int>(std::floor(position.x));
     const int curY = static_cast<int>(std::floor(position.y));
-    bool isInWater = blocks[curX][curY].type == BlockType::WATER;
+    const bool isInWater = blocks[curX][curY].type == BlockType::WATER;
     if (isJumping) {
         if (isInWater) velocity.y = 1.0f;
         else if (velocity.y == 0.0f) {

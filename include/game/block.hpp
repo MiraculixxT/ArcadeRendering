@@ -66,7 +66,9 @@ public:
     /**
      * Get the first block from top to bottom that is not air.
      * @param ignoreLeaves Useful for placing the player under trees, not on top
-#     */
+     * @param x X coordinate in world
+     * @param blocks Blocks in world
+     */
     static int getHighestBlock(bool ignoreLeaves, int x, const std::vector<std::vector<Block>>& blocks);
 
     static bool isInBounds(glm::uvec2 pos, const std::vector<std::vector<Block>>& blocks);

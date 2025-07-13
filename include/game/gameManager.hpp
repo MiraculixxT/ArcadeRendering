@@ -5,7 +5,6 @@
 #ifndef GAMEMANAGER_H
 #define GAMEMANAGER_H
 #include "assetManager.hpp"
-#include "cinematicEngine.hpp"
 #include "block.hpp"
 #include "entity.hpp"
 #include "framework/app.hpp"
@@ -49,7 +48,7 @@ public:
     GameManager(AssetManager *assetsManager, int *height, int *width);
 
     // World generation data
-    int seed;
+    int seed = -1;
     float frequency = 0.03f;
     float terrainBase = 0.0f;
     float terrainPeak = 100.0f;
@@ -86,7 +85,7 @@ public:
      */
     void breakBlock(uvec2 pos);
 
-    EntityPlayer* getPlayer() const { return player; };
+    [[nodiscard]] EntityPlayer* getPlayer() const { return player; };
 
     /**
      * Updates the game state.
@@ -110,7 +109,7 @@ public:
      */
     void keyCallback(Key key, Action action, Modifier modifier);
 
-    static std::string debugKeyToString(Key key) {
+    static std::string debugKeyToString(const Key key) {
         switch (key) {
             case Key::W: return "W";
             case Key::D: return "D";
@@ -123,7 +122,7 @@ public:
     }
 
 
-    static std::string debugActionToString(Action action) {
+    static std::string debugActionToString(const Action action) {
         switch (action) {
             case Action::RELEASE: return "RELEASE";
             case Action::PRESS: return "PRESS";
@@ -132,7 +131,7 @@ public:
         }
     }
 
-    static std::string debugModToString(Modifier modifier) {
+    static std::string debugModToString(const Modifier modifier) {
         std::string result;
         result += "-";
         if (modifier >= Modifier::SHIFT) result += "SHIFT|";

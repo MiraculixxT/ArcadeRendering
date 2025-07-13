@@ -2,17 +2,13 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/constants.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <random>
-#include <glm/gtx/transform.hpp>
 
 #include "game/gameManager.hpp"
 using namespace glm;
 
 #include <framework/app.hpp>
-#include <framework/camera.hpp>
-#include <framework/mesh.hpp>
 #include <framework/imguiutil.hpp>
 
 #include <iostream>
@@ -20,8 +16,7 @@ using namespace glm;
 #include "cinematicEngine.hpp"
 using namespace arcader;
 
-struct MainApp : public App {
-
+struct MainApp final : App {
 private:
     AssetManager assetManager;
     GameManager gameManager{&assetManager, &screenHeight, &screenWidth};
@@ -36,8 +31,8 @@ public:
         glfwSetWindowAttrib(window, GLFW_RESIZABLE, GLFW_FALSE);
         glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
         // Fullscreen
-        GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-        const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+        GLFWmonitor *monitor = glfwGetPrimaryMonitor();
+        const GLFWvidmode *mode = glfwGetVideoMode(monitor);
         glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
 
         // OpenGL flags
@@ -71,13 +66,18 @@ public:
      * @param action press or release
      * @param modifier modifier keys (shift, ctrl, alt)
      */
-    void keyCallback(Key key, Action action, Modifier modifier) override {
+    void keyCallback(const Key key, const Action action, const Modifier modifier) override {
         if (action == Action::PRESS) {
             switch (key) {
-                case Key::ESC: close(); break;
-                case Key::COMMA: imguiEnabled = !imguiEnabled; break;
-                case Key::RIGHT: changeState(1); break;
-                case Key::LEFT: changeState(-1); break;
+                case Key::ESC: close();
+                    break;
+                case Key::COMMA: imguiEnabled = !imguiEnabled;
+                    break;
+                case Key::RIGHT: changeState(1);
+                    break;
+                case Key::LEFT: changeState(-1);
+                    break;
+                default: break;
             }
         }
 
@@ -85,7 +85,7 @@ public:
             case 2: // game state
                 gameManager.keyCallback(key, action, modifier);
                 break;
-            default: nullptr;
+            default: break;
         }
     }
 
@@ -94,8 +94,8 @@ public:
 
         // Zeit berechnen
         static float lastTime = 0.0f;
-        float currentTime = static_cast<float>(glfwGetTime());
-        float deltaTime = currentTime - lastTime;
+        const auto currentTime = static_cast<float>(glfwGetTime());
+        const float deltaTime = currentTime - lastTime;
         lastTime = currentTime;
 
         // Update manuell aufrufen
@@ -121,11 +121,12 @@ public:
         }
         ImGui::End();
 
-        if (gameManager.getPlayer()) { // Only show when game is initialized
+        if (gameManager.getPlayer()) {
+            // Only show when game is initialized
             ImGui::Begin("Game Management", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
             if (ImGui::Button("Seed Randomize")) {
                 std::random_device rd;
-                gameManager.seed = rd();
+                gameManager.seed = static_cast<int>(rd());
                 gameManager.generateTerrain();
                 gameManager.generateTrees();
             }
@@ -153,9 +154,9 @@ public:
             const vec2 playerPos = gameManager.getPlayer()->position;
             const vec2 playerVel = gameManager.getPlayer()->velocity;
             ImGui::Text("Pos: (%.2f, %.2f) - Vel: (%.2f, %.2f)", playerPos.x, playerPos.y, playerVel.x, playerVel.y);
-            auto player = gameManager.getPlayer();
-            ImGui::Text("Key: A:%d | D:%d | W:%d | S:%d | SPRNT: %d | JMP: %d", player->isPressingLeft, player->isPressingRight,
-                    player->isPressingUp, player->isPressingDown, player->isSprinting, player->isJumping);
+            const auto player = gameManager.getPlayer();
+            ImGui::Text("Key: A:%d | D:%d | W:%d | S:%d | SPRT: %d | JMP: %d", player->isPressingLeft, player->isPressingRight,
+                        player->isPressingUp, player->isPressingDown, player->isSprinting, player->isJumping);
 
             ImGui::BeginChild("Retro Shader Settings", ImVec2(0, 0), ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_Border);
             ImGui::Text("--- Retro Shader Settings ---");

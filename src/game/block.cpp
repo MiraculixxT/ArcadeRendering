@@ -54,8 +54,8 @@ bool BlockStates::isSolid(const BlockType &type) {
 }
 
 bool BlockStates::isColliding(const glm::vec2 &pos, const std::vector<std::vector<Block> > &blocks) {
-    int x = static_cast<int>(pos.x);
-    int y = static_cast<int>(pos.y);
+    const int x = static_cast<int>(pos.x);
+    const int y = static_cast<int>(pos.y);
 
     if (x < 0 || x >= blocks.size() || y < 0 || y >= blocks[0].size()) {
         return true; // Outside bounds = solid
@@ -70,7 +70,7 @@ int BlockStates::getHighestBlock(const bool ignoreLeaves, const int x, const std
         if (isSolid(type)) {
             if (ignoreLeaves && type == BlockType::LEAVES) {
                 // check if under leaves is a non-solid
-                auto subBlock = blocks[x][y - 1].type;
+                const auto subBlock = blocks[x][y - 1].type;
                 if (isSolid(subBlock)) return y; // No free space underneath leaves (double leaves appear very rare, so not worth the check cost)
             }
             return y;

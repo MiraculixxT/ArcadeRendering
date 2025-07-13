@@ -6,6 +6,7 @@
 #define ARCADE_AUDIOPLAYER_HPP
 
 #include <iostream>
+#include <memory>
 #include <unordered_map>
 #include "miniaudio.h"
 
