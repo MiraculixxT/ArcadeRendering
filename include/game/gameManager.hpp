@@ -41,6 +41,7 @@ class GameManager {
     Program& tile_shader;
     Program& entity_shader;
     Program& debugShader;
+    Program& hudShader;
     Mesh mesh;
     EntityPlayer* player = nullptr;
 

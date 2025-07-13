@@ -59,10 +59,12 @@ namespace arcader {
         BLOCK_AIR,
         ENTITY_PLAYER,
         ENTITY_TREE,
+        HUD_SLOT,
 
         SHADER_TILE,
         SHADER_ENTITY,
         SHADER_DEBUG,
+        SHADER_HUD,
 
         ARCADE_MACHINE,
         ROOM

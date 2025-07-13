@@ -19,7 +19,8 @@ namespace arcader {
 GameManager::GameManager(AssetManager *assetsManager, int *height, int *width) : assets(assetsManager), screenHeight(height), screenWidth(width),
                                                                                  tile_shader(assetsManager->getShader(StaticAssets::SHADER_TILE)),
                                                                                  entity_shader(assetsManager->getShader(StaticAssets::SHADER_ENTITY)),
-                                                                                 debugShader(assetsManager->getShader(StaticAssets::SHADER_DEBUG)) {
+                                                                                 debugShader(assetsManager->getShader(StaticAssets::SHADER_DEBUG)),
+                                                                                 hudShader(assetsManager->getShader(StaticAssets::SHADER_HUD)) {
     blocks.resize(worldWidth, std::vector<Block>(worldHeight));
 };
 
@@ -33,6 +34,7 @@ void GameManager::init() {
         assets->loadTexture(texture, "assets/textures/game/" + BlockStates::getTextureName(type) + ".png");
     }
     assets->loadTexture(StaticAssets::ENTITY_PLAYER, "assets/textures/game/player.png");
+    assets->loadTexture(StaticAssets::HUD_SLOT, "assets/textures/game/slot.png");
 
     // Load mesh
     printf("  - Loading mesh...\n");
@@ -317,6 +319,33 @@ void GameManager::render(Camera &camera) {
         debugShader.set("u_MVP", mvp2);
         mesh.draw();
     }
+
+    // --- Render HUD ---
+    tile_shader.use();
+    vec3 hudPos = vec3(0.5f, 0.5f, 0.1f);
+    mat4 model = translate(mat4(1.0f), hudPos);
+    model = scale(model, vec3(2.5f));
+    mat4 mvp = projection * view * model;
+
+    tile_shader.set("u_MVP", mvp);
+    tile_shader.set("u_Time", time);
+
+    GLuint texID = assets->getTexture(StaticAssets::HUD_SLOT).handle;
+    glBindTexture(GL_TEXTURE_2D, texID);
+    mesh.draw();
+
+    if (player->selected != BlockType::AIR) {
+        hudPos = vec3(1.0f, 1.0f, 0.11f);
+        model = translate(mat4(1.0f), hudPos);
+        model = scale(model, vec3(1.5f));
+        mvp = projection * view * model;
+        tile_shader.set("u_MVP", mvp);
+
+        texID = assets->getTexture(BlockStates::getTextureToFromType(player->selected)).handle;
+        glBindTexture(GL_TEXTURE_2D, texID);
+        mesh.draw();
+    }
+
 }
 
 void GameManager::keyCallback(Key key, Action action, Modifier modifier) {
