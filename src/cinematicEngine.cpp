@@ -127,8 +127,8 @@ namespace arcader {
             case 1: {
                 dustParticles.update(dt);
 
-                glm::vec3 targetCamPos = glm::vec3(0.0f, 62.4f, 0.75f);
-                glm::vec3 targetLookAt = glm::vec3(0.0f, 62.2f, 0.0f);
+                glm::vec3 targetCamPos = glm::vec3(0.0f, 62.4f, 0.2f);
+                glm::vec3 targetLookAt = glm::vec3(0.0f, 62.3f, 0.0f);
 
                 // slow start
                 float progress = glm::clamp(timer / 4.0f, 0.0f, 1.0f);
