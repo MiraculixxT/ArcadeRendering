@@ -23,6 +23,7 @@ GameManager::GameManager(AssetManager *assetsManager, int *height, int *width) :
 
 void GameManager::init() {
     printf("Initializing game...\n");
+    startTime = static_cast<float>(glfwGetTime()); // Store start time to start from 0
 
     // Load textures
     printf("  - Loading textures...\n");
@@ -264,7 +265,7 @@ void GameManager::render(Camera &camera) {
         cameraTarget, // look at center
         vec3(0.0f, 1.0f, 0.0f) // up direction
     );
-    auto time = static_cast<float>(glfwGetTime());
+    auto time = static_cast<float>(glfwGetTime()) - startTime;
 
     // --- Render Background ---
     tileShader.use();
@@ -276,6 +277,7 @@ void GameManager::render(Camera &camera) {
     tileShader.set("u_Time", time);
     tileShader.set("u_Static", true);
     tileShader.set("u_Texture", 0);
+    tileShader.set("u_FlipX", false);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, assets->getTexture(StaticAssets::BACKGROUND).handle);
@@ -312,16 +314,16 @@ void GameManager::render(Camera &camera) {
 
     // --- Render Entities ---
     for (const auto& entity : entities) {
-        entityShader.use();
-        entityShader.set("u_Texture", 0);
-        entityShader.set("u_FlipX", entity->getDirection());
+        tileShader.use();
+        tileShader.set("u_Texture", 0);
+        tileShader.set("u_FlipX", entity->getDirection());
 
         auto worldPos = vec3(entity->position - vec2(0.5, 0.0), 0.02f);
         mat4 model = translate(mat4(1.0f), worldPos);
         mat4 mvp = projection * view * model;
 
-        entityShader.set("u_MVP", mvp);
-        entityShader.set("u_Time", entity->getTicksLived());
+        tileShader.set("u_MVP", mvp);
+        tileShader.set("u_Time", time);
         glBindTexture(GL_TEXTURE_2D, assets->getTexture(entity->getTexture()).handle);
         //entity->render(mvp, assets);
         mesh.draw();
@@ -348,6 +350,7 @@ void GameManager::render(Camera &camera) {
     tileShader.set("noiseStrength", retroShaderData.noiseStrength * 0.25f); // Less noise on HUD
     tileShader.set("u_MVP", mvp);
     tileShader.set("u_Time", time);
+    tileShader.set("u_FlipX", false);
 
     GLuint texID = assets->getTexture(StaticAssets::HUD_SLOT).handle;
     glBindTexture(GL_TEXTURE_2D, texID);

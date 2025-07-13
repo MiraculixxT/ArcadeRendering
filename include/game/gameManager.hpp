@@ -44,6 +44,8 @@ class GameManager {
     Mesh mesh;
     EntityPlayer* player = nullptr;
 
+    float startTime = 0;
+
 public:
     GameManager(AssetManager *assetsManager, int *height, int *width);
 

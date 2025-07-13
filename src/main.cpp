@@ -109,6 +109,8 @@ public:
         ImGui::StatisticsWindow(delta, resolution);
 
         ImGui::Begin("Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+        ImGui::Text("Time: %.3f", glfwGetTime());
+
         int currentState = cinematicEngine.getState();
         ImGui::SliderInt("State", &currentState, 0, 5);
 

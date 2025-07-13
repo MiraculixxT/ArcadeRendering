@@ -6,6 +6,7 @@ in vec2 vScreenUV;
 uniform sampler2D u_Texture;
 uniform float u_Time;
 uniform bool u_Static = false;
+uniform bool u_FlipX;
 
 out vec4 FragColor;
 
@@ -59,25 +60,65 @@ float edgeFade() {
     return min(leftBlend, rightBlend);  // 1.0 inside, fades to 0.0 at edges
 }
 
+// Box blur algorithm
+vec3 getBlurredColor(sampler2D tex, vec2 uv, float blurAmount) {
+    vec2 texelSize = 1.0 / screenSize;
+    vec3 result = vec3(0.0);
+
+    // Sample a 3x3 neighborhood
+    for (int x = -1; x <= 1; x++) {
+        for (int y = -1; y <= 1; y++) {
+            vec2 offset = vec2(x, y) * texelSize * blurAmount;
+            result += texture(tex, uv + offset).rgb;
+        }
+    }
+
+    return result / 9.0;
+}
+
+vec3 transition(vec3 color) {
+    float flashDuration = 5.0;
+    float flashProgress = clamp(u_Time / flashDuration, 0.0, 1.0);
+    float flashOpacity = 1.0 - flashProgress;
+
+    // Apply blur proportionally to flash
+    float blurStrength = flashOpacity * 10.0;
+    vec3 blurredColor = getBlurredColor(u_Texture, vTexCoord, blurStrength);
+
+    // Blend sharp and blurred color
+    vec3 finalColor = mix(blurredColor, color, flashProgress);
+
+    // Fade from white overlay
+    return mix(vec3(1.0), finalColor, flashProgress);
+}
+
 
 void main() {
-    vec4 color = texture(u_Texture, vTexCoord);
+    vec2 uv = vTexCoord;
+    if (u_FlipX) {
+        uv.x = 1.0 - uv.x;
+    }
 
-    if (!u_Static) color.rgb = applyRetroColors(color.rgb);
+    vec4 mColor = texture(u_Texture, uv);
+    vec3 color = mColor.rgb;
+
+    if (!u_Static) color = applyRetroColors(color);
 
     if (vScreenUV.x > leftEdge && vScreenUV.x < rightEdge) {
         float fade = edgeFade();
         vec3 bgColor = vec3(0x05 / 255.0); // background color
-        color.rgb = mix(bgColor, color.rgb, fade);  // fade into active color
+        color = mix(bgColor, color, fade);  // fade into active color
     }
 
-    color.rgb *= vignette();
-    color.rgb *= scanline();
+    color *= scanline();
+    color = transition(color);
+    color *= vignette();
 
     if (!u_Static) {
         float grain = noise(u_Time);
-        color.rgb += (grain - 0.5) * noiseStrength;
+        color += (grain - 0.5) * noiseStrength;
     }
 
-    FragColor = color;
+
+    FragColor = vec4(color, mColor.a);
 }
