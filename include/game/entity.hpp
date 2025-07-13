@@ -76,6 +76,8 @@ class EntityPlayer final : public Entity {
 public:
     bool isPressingRight = false;
     bool isPressingLeft = false;
+    bool isPressingUp = false;
+    bool isPressingDown = false;
     bool isSprinting = false;
     bool isJumping = false;
     BlockType selected = BlockType::AIR;
@@ -106,6 +108,8 @@ public:
      * @return Current direction vector.
      */
     bool getDirection() const;
+
+    [[nodiscard]] glm::uvec2 getTargetPosition() const;
 };
 
 } // arcader

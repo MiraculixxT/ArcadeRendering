@@ -154,7 +154,8 @@ public:
             const vec2 playerVel = gameManager.getPlayer()->velocity;
             ImGui::Text("Pos: (%.2f, %.2f) - Vel: (%.2f, %.2f)", playerPos.x, playerPos.y, playerVel.x, playerVel.y);
             auto player = gameManager.getPlayer();
-            ImGui::Text("Key: A:%d | D:%d | SPRNT: %d", player->isPressingLeft, player->isPressingRight, player->isSprinting);
+            ImGui::Text("Key: A:%d | D:%d | W:%d | S:%d | SPRNT: %d | JMP: %d", player->isPressingLeft, player->isPressingRight,
+                    player->isPressingUp, player->isPressingDown, player->isSprinting, player->isJumping);
 
             ImGui::BeginChild("Retro Shader Settings", ImVec2(0, 0), ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_Border);
             ImGui::Text("--- Retro Shader Settings ---");

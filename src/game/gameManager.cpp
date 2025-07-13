@@ -101,14 +101,15 @@ void GameManager::generateTerrain() {
         height = std::min(height, worldHeight - 3); // Leave some space for blocks above
 
         for (int y = 0; y < worldHeight; ++y) {
+            const auto pos = uvec2(x, y);
             if (y < height - 3)
-                placeBlock(x, y, BlockType::STONE);
+                placeBlock(pos, BlockType::STONE);
             else if (y < height - 1)
-                placeBlock(x, y, BlockType::DIRT);
+                placeBlock(pos, BlockType::DIRT);
             else if (y == height - 1)
-                placeBlock(x, y, BlockType::GRASS);
+                placeBlock(pos, BlockType::GRASS);
             else if (y <= waterLevel)
-                placeBlock(x, y, BlockType::WATER);
+                placeBlock(pos, BlockType::WATER);
             else
                 blocks[x][y] = {BlockType::AIR, StaticAssets::BLOCK_AIR}; // dont use place function on air, waste of resources
         }
@@ -147,19 +148,21 @@ void GameManager::generateTrees() {
 
             // Place wood
             for (int i = 1; i < treeHeight; ++i) {
-                placeBlock(x, y + i, BlockType::WOOD);
+                placeBlock(uvec2(x, y + i), BlockType::WOOD);
             }
 
             // Place leaves
-            placeBlock(x, y + 1 + treeHeight, BlockType::LEAVES); // center top
-            placeBlock(x - 1, y + treeHeight, BlockType::LEAVES);
-            placeBlock(x,     y + treeHeight, BlockType::LEAVES);
-            placeBlock(x + 1, y + treeHeight, BlockType::LEAVES);
+            placeBlock(uvec2(x, y + 1 + treeHeight), BlockType::LEAVES); // center top
+            placeBlock(uvec2(x - 1, y + treeHeight), BlockType::LEAVES);
+            placeBlock(uvec2(x,     y + treeHeight), BlockType::LEAVES);
+            placeBlock(uvec2(x + 1, y + treeHeight), BlockType::LEAVES);
         }
     }
 }
 
-void GameManager::placeBlock(const int x, const int y, const BlockType type) {
+void GameManager::placeBlock(const uvec2 pos, const BlockType type) {
+    const auto x = pos.x;
+    const auto y = pos.y;
     const auto currentBlock = blocks[x][y];
     if (type != BlockType::AIR && currentBlock.type == BlockType::WOOD) return;
 
@@ -176,25 +179,28 @@ void GameManager::placeBlock(const int x, const int y, const BlockType type) {
     if (type == BlockType::WATER) {
         // Check if we can flow down
         if (y > 0 && blocks[x][y - 1].type == BlockType::AIR) {
-            placeBlock(x - 1, y, BlockType::WATER);
+            placeBlock(uvec2(x, y - 1), BlockType::WATER);
         }
         // Check if we can flow left or right
         if (x > 0 && blocks[x - 1][y].type == BlockType::AIR) {
-            placeBlock(x - 1, y, BlockType::WATER);
+            placeBlock(uvec2(x - 1, y), BlockType::WATER);
         }
         if (x < worldWidth - 1 && blocks[x + 1][y].type == BlockType::AIR) {
-            placeBlock(x + 1, y, BlockType::WATER);
+            placeBlock(uvec2(x + 1, y), BlockType::WATER);
         }
     }
 
     // Check if underneath is grass to decay
+    if (y <= 0) return;
     const auto subBlock = &blocks[x][y-1];
     if (subBlock->type == BlockType::GRASS) {
         blocks[x][y-1] = {BlockType::DIRT, StaticAssets::BLOCK_DIRT};
     }
 }
 
-void GameManager::breakBlock(const int x, const int y) {
+void GameManager::breakBlock(const uvec2 pos) {
+    const auto x = pos.x;
+    const auto y = pos.y;
     auto [type, texture] = blocks[x][y];
     if (type == BlockType::AIR || type == BlockType::WATER) return;
     player->selected = type; // Set the selected block type to the one that was broken
@@ -204,7 +210,7 @@ void GameManager::breakBlock(const int x, const int y) {
     if ((y < 31 && blocks[x][y + 1].type == BlockType::WATER) || // aboth
         (x < worldWidth-1 && blocks[x+1][y].type == BlockType::WATER) || // right
         (x > 0 && blocks[x-1][y].type == BlockType::WATER)) { // left
-        placeBlock(x, y, BlockType::WATER);
+        placeBlock(pos, BlockType::WATER);
     }
 }
 
@@ -360,24 +366,33 @@ void GameManager::keyCallback(Key key, Action action, Modifier modifier) {
     switch (key) {
         case Key::D: player->isPressingRight = action == Action::PRESS; break;
         case Key::A: player->isPressingLeft = action == Action::PRESS; break;
+        case Key::W: player->isPressingUp = action == Action::PRESS; break;
+        case Key::S: player->isPressingDown = action == Action::PRESS; break;
         case Key::LEFT_CONTROL: player->isSprinting = action == Action::PRESS; break;
         case Key::SPACE: player->isJumping = action == Action::PRESS; break;
 
         case Key::Q: {
             // Mining
             if (action != Action::PRESS) return;
-            const int breakX = static_cast<int>(std::floor(player->position.x)) + (player->getDirection() ? 1 : -1);
-            const int breakY = static_cast<int>(std::floor(player->position.y));
-            breakBlock(breakX, breakY);
+            const auto target = player->getTargetPosition();
+            if (!BlockStates::isInBounds(target, blocks)) return;
+
+            const auto targetType = blocks[target.x][target.y].type;
+            if (!BlockStates::isSolid(targetType)) return; // prevent breaking air or water
+            breakBlock(target);
             return;
         }
 
         case Key::E: {
             // Placing
             if (action != Action::PRESS) return;
-            const int placeX = static_cast<int>(std::floor(player->position.x)) + (player->getDirection() ? 1 : -1);
-            const int placeY = static_cast<int>(std::floor(player->position.y));
-            placeBlock(placeX, placeY, player->selected);
+            const auto target = player->getTargetPosition();
+            if (!BlockStates::isInBounds(target, blocks)) return;
+
+            if (player->selected == BlockType::AIR) return;
+            const auto targetType = blocks[target.x][target.y].type;
+            if (BlockStates::isSolid(targetType)) return; // prevent replacing solid blocks
+            placeBlock(target, player->selected);
             return;
         }
 

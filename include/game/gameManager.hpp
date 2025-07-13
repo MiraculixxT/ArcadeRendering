@@ -75,18 +75,16 @@ public:
 
     /**
      * Place a block in the world and updating the surrounding if needed
-     * @param x coord x
-     * @param y coord y
+     * @param pos block position
      * @param type the block type that is intended to be placed
      */
-    void placeBlock(int x, int y, BlockType type);
+    void placeBlock(uvec2 pos, BlockType type);
 
     /**
      * Break a block in the world and updating the surrounding if needed.
-     * @param x coord x
-     * @param y coord y
+     * @param pos block position
      */
-    void breakBlock(int x, int y);
+    void breakBlock(uvec2 pos);
 
     EntityPlayer* getPlayer() const { return player; };
 

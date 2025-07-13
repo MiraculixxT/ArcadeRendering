@@ -78,4 +78,8 @@ int BlockStates::getHighestBlock(const bool ignoreLeaves, const int x, const std
     }
     return 0; // No solid block found
 }
+
+bool BlockStates::isInBounds(const glm::uvec2 pos, const std::vector<std::vector<Block>> &blocks) {
+    return pos.x < blocks.size() && pos.y < blocks[0].size();
+}
 }

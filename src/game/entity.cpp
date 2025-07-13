@@ -6,6 +6,7 @@
 
 #include "framework/app.hpp"
 #include "game/block.hpp"
+#include "glm/detail/_noise.hpp"
 
 namespace arcader {
 /*
@@ -30,8 +31,10 @@ Entity::Entity(const EntityType type, const float width, const float height, con
     direction(false),
     velocity(vec2(0.0,0.0)) {}
 
+bool canJump = true;
+
 void EntityPlayer::update(const float deltaTime, const std::vector<std::vector<Block>>& blocks) {
-    constexpr float gravity = -4.0f;
+    constexpr float gravity = -8.0f;
     constexpr float maxFallSpeed = -5.0f;
 
     // React to input
@@ -40,7 +43,12 @@ void EntityPlayer::update(const float deltaTime, const std::vector<std::vector<B
     bool isInWater = blocks[curX][curY].type == BlockType::WATER;
     if (isJumping) {
         if (isInWater) velocity.y = 1.0f;
-        else if (velocity.y == 0.0f) velocity.y = 3.0f;
+        else if (velocity.y == 0.0f) {
+            if (canJump) {
+                canJump = false;
+                velocity.y = 5.0f;
+            } else canJump = true;
+        }
     }
 
     const float sprintMult = (isSprinting && !isInWater) ? 2.0f : 1.0f;
@@ -131,4 +139,17 @@ bool EntityPlayer::getDirection() const {
     return direction;
 }
 
+uvec2 EntityPlayer::getTargetPosition() const {
+    int placeX = static_cast<int>(std::floor(position.x));
+    int placeY = static_cast<int>(std::floor(position.y));
+
+    if (isPressingUp || isPressingDown) { // prioritize vertical direction
+        if (isPressingUp) placeY += 1;
+        if (isPressingDown) placeY -= 1;
+
+    } else { // Horizontal direction
+        placeX += (getDirection() ? 1 : -1);
+    }
+    return {placeX, placeY};
+}
 } // arcader

@@ -68,6 +68,8 @@ public:
      * @param ignoreLeaves Useful for placing the player under trees, not on top
 #     */
     static int getHighestBlock(bool ignoreLeaves, int x, const std::vector<std::vector<Block>>& blocks);
+
+    static bool isInBounds(glm::uvec2 pos, const std::vector<std::vector<Block>>& blocks);
 };
 } // arcader
 
