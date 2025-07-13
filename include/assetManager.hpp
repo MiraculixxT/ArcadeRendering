@@ -60,6 +60,7 @@ namespace arcader {
         ENTITY_PLAYER,
         ENTITY_TREE,
         HUD_SLOT,
+        BACKGROUND,
 
         SHADER_TILE,
         SHADER_ENTITY,

@@ -32,6 +32,7 @@ void GameManager::init() {
     }
     assets->loadTexture(StaticAssets::ENTITY_PLAYER, "assets/textures/game/player.png");
     assets->loadTexture(StaticAssets::HUD_SLOT, "assets/textures/game/slot.png");
+    assets->loadTexture(StaticAssets::BACKGROUND, "assets/textures/game/background.png");
 
     // Load mesh
     printf("  - Loading mesh...\n");
@@ -253,7 +254,8 @@ void GameManager::render(Camera &camera) {
     0.1f, 100.0f
     );
 
-    auto base = vec2(worldWidth / 2.0f - relativeOffset / 2.0f, 0.0f);
+    const float offsetX = worldWidth / 2.0f - relativeOffset / 2.0f;
+    auto base = vec2(offsetX, 0.0f);
     auto cameraPos   = vec3(base, 10.0f);  // move in XY, look from Z
     auto cameraTarget = vec3(base, 0.0f);   // look straight down at the same XY
     camera.worldPosition = cameraPos;
@@ -266,7 +268,17 @@ void GameManager::render(Camera &camera) {
 
     // --- Render Background ---
     hudShader.use();
+    mat4 bgModel = translate(mat4(1.0f), vec3(offsetX, 0.0f, 0.0f));
+    bgModel = scale(bgModel, vec3(relativeOffset, worldHeight, 1.0f));
+    mat4 bgMVP = projection * view * bgModel;
 
+    hudShader.set("u_MVP", bgMVP);
+    hudShader.set("u_Time", time);
+    hudShader.set("u_Texture", 0);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, assets->getTexture(StaticAssets::BACKGROUND).handle);
+    mesh.draw();
     
     // --- Render Blocks ---
     tileShader.use();
@@ -282,7 +294,7 @@ void GameManager::render(Camera &camera) {
             auto& [type, texture] = blocks[x][y];
             //if (type == BlockType::AIR) continue;
 
-            auto worldPos = vec3(x, y, 0.0f);
+            auto worldPos = vec3(x, y, 0.01f);
 
             mat4 model = translate(mat4(1.0f), worldPos);
             mat4 mvp = projection * view * model;
@@ -302,7 +314,7 @@ void GameManager::render(Camera &camera) {
         entityShader.set("u_Texture", 0);
         entityShader.set("u_FlipX", entity->getDirection());
 
-        auto worldPos = vec3(entity->position - vec2(0.5, 0.0), 0.01f);
+        auto worldPos = vec3(entity->position - vec2(0.5, 0.0), 0.02f);
         mat4 model = translate(mat4(1.0f), worldPos);
         mat4 mvp = projection * view * model;
 
