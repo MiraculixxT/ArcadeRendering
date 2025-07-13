@@ -37,8 +37,8 @@ class GameManager {
     AssetManager *assets;
     int *screenHeight;
     int *screenWidth;
-    Program& tile_shader;
-    Program& entity_shader;
+    Program& tileShader;
+    Program& entityShader;
     Program& debugShader;
     Program& hudShader;
     Mesh mesh;

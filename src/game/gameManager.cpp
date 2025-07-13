@@ -14,8 +14,8 @@
 namespace arcader {
 
 GameManager::GameManager(AssetManager *assetsManager, int *height, int *width) : assets(assetsManager), screenHeight(height), screenWidth(width),
-                                                                                 tile_shader(assetsManager->getShader(StaticAssets::SHADER_TILE)),
-                                                                                 entity_shader(assetsManager->getShader(StaticAssets::SHADER_ENTITY)),
+                                                                                 tileShader(assetsManager->getShader(StaticAssets::SHADER_TILE)),
+                                                                                 entityShader(assetsManager->getShader(StaticAssets::SHADER_ENTITY)),
                                                                                  debugShader(assetsManager->getShader(StaticAssets::SHADER_DEBUG)),
                                                                                  hudShader(assetsManager->getShader(StaticAssets::SHADER_HUD)) {
     blocks.resize(worldWidth, std::vector<Block>(worldHeight));
@@ -264,15 +264,18 @@ void GameManager::render(Camera &camera) {
     );
     auto time = static_cast<float>(glfwGetTime());
 
+    // --- Render Background ---
+    hudShader.use();
+
     
     // --- Render Blocks ---
-    tile_shader.use();
-    tile_shader.set("colorLevels", retroShaderData.colorLevels);
-    tile_shader.set("noiseStrength", retroShaderData.noiseStrength);
-    tile_shader.set("noiseScale", retroShaderData.noiseScale);
-    tile_shader.set("scanlineStrength", retroShaderData.scanlineStrength);
-    tile_shader.set("scanlineFrequency", retroShaderData.scanlineFrequency);
-    tile_shader.set("u_Texture", 0);
+    tileShader.use();
+    tileShader.set("colorLevels", retroShaderData.colorLevels);
+    tileShader.set("noiseStrength", retroShaderData.noiseStrength);
+    tileShader.set("noiseScale", retroShaderData.noiseScale);
+    tileShader.set("scanlineStrength", retroShaderData.scanlineStrength);
+    tileShader.set("scanlineFrequency", retroShaderData.scanlineFrequency);
+    tileShader.set("u_Texture", 0);
 
     for (int y = 0; y < worldHeight; ++y) {
         for (int x = 0; x < worldWidth; ++x) {
@@ -284,8 +287,8 @@ void GameManager::render(Camera &camera) {
             mat4 model = translate(mat4(1.0f), worldPos);
             mat4 mvp = projection * view * model;
 
-            tile_shader.set("u_MVP", mvp);
-            tile_shader.set("u_Time", time);
+            tileShader.set("u_MVP", mvp);
+            tileShader.set("u_Time", time);
 
             GLuint texID = assets->getTexture(texture).handle;
             glBindTexture(GL_TEXTURE_2D, texID);
@@ -295,16 +298,16 @@ void GameManager::render(Camera &camera) {
 
     // --- Render Entities ---
     for (const auto& entity : entities) {
-        entity_shader.use();
-        entity_shader.set("u_Texture", 0);
-        entity_shader.set("u_FlipX", entity->getDirection());
+        entityShader.use();
+        entityShader.set("u_Texture", 0);
+        entityShader.set("u_FlipX", entity->getDirection());
 
         auto worldPos = vec3(entity->position - vec2(0.5, 0.0), 0.01f);
         mat4 model = translate(mat4(1.0f), worldPos);
         mat4 mvp = projection * view * model;
 
-        entity_shader.set("u_MVP", mvp);
-        entity_shader.set("u_Time", entity->getTicksLived());
+        entityShader.set("u_MVP", mvp);
+        entityShader.set("u_Time", entity->getTicksLived());
         glBindTexture(GL_TEXTURE_2D, assets->getTexture(entity->getTexture()).handle);
         //entity->render(mvp, assets);
         mesh.draw();
@@ -322,14 +325,14 @@ void GameManager::render(Camera &camera) {
     }
 
     // --- Render HUD ---
-    tile_shader.use();
+    tileShader.use();
     auto hudPos = vec3(0.5f, 0.5f, 0.1f);
     mat4 model = translate(mat4(1.0f), hudPos);
     model = scale(model, vec3(2.5f));
     mat4 mvp = projection * view * model;
 
-    tile_shader.set("u_MVP", mvp);
-    tile_shader.set("u_Time", time);
+    tileShader.set("u_MVP", mvp);
+    tileShader.set("u_Time", time);
 
     GLuint texID = assets->getTexture(StaticAssets::HUD_SLOT).handle;
     glBindTexture(GL_TEXTURE_2D, texID);
@@ -340,7 +343,7 @@ void GameManager::render(Camera &camera) {
         model = translate(mat4(1.0f), hudPos);
         model = scale(model, vec3(1.5f));
         mvp = projection * view * model;
-        tile_shader.set("u_MVP", mvp);
+        tileShader.set("u_MVP", mvp);
 
         texID = assets->getTexture(BlockStates::getTextureToFromType(player->selected)).handle;
         glBindTexture(GL_TEXTURE_2D, texID);
