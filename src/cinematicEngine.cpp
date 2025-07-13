@@ -143,7 +143,9 @@ namespace arcader {
 
                 if (glm::length(camera.worldPosition - targetCamPos) < 0.01f) {
                     setState(2);
-                    audioPlayer.play("assets/sounds/activate.wav", 0.5f);
+                    if(!audioPlayer.isPlaying("assets/sounds/activate.wav")) {
+                        printf("Playing arcade sound\n");
+                        audioPlayer.play("assets/sounds/activate.wav", 0.5f);                    }
                     game->init();
                 }
 
