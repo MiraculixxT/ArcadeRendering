@@ -5,6 +5,7 @@
 #ifndef GAMEMANAGER_H
 #define GAMEMANAGER_H
 #include "assetManager.hpp"
+#include "audioPlayer.hpp"
 #include "block.hpp"
 #include "entity.hpp"
 #include "framework/app.hpp"
@@ -43,6 +44,7 @@ class GameManager {
     Program& hudShader;
     Mesh mesh;
     EntityPlayer* player = nullptr;
+    AudioPlayer audioPlayer;
 
     float startTime = 0;
 
@@ -93,7 +95,7 @@ public:
      * Updates the game state.
      * @param deltaTime Time elapsed since the last update, used for time-based calculations.
      */
-    void update(float deltaTime) const;
+    void update(float deltaTime);
 
     void renderDebug(Camera &camera);
 

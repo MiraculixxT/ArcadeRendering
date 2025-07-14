@@ -17,7 +17,8 @@ GameManager::GameManager(AssetManager *assetsManager, int *height, int *width) :
                                                                                  tileShader(assetsManager->getShader(StaticAssets::SHADER_TILE)),
                                                                                  entityShader(assetsManager->getShader(StaticAssets::SHADER_ENTITY)),
                                                                                  debugShader(assetsManager->getShader(StaticAssets::SHADER_DEBUG)),
-                                                                                 hudShader(assetsManager->getShader(StaticAssets::SHADER_HUD)) {
+                                                                                 hudShader(assetsManager->getShader(StaticAssets::SHADER_HUD)),
+                                                                                 audioPlayer(AudioPlayer{}) {
     blocks.resize(worldWidth, std::vector<Block>(worldHeight));
 };
 
@@ -216,10 +217,10 @@ void GameManager::breakBlock(const uvec2 pos) {
     }
 }
 
-void GameManager::update(const float deltaTime) const {
+void GameManager::update(const float deltaTime) {
     // Update entities
-    for (auto &entity : entities) {
-        entity->update(deltaTime, blocks);
+    for (const auto &entity : entities) {
+        entity->update(deltaTime, blocks, audioPlayer);
     }
 }
 
@@ -401,6 +402,7 @@ void GameManager::keyCallback(const Key key, const Action action, const Modifier
             if (!BlockStates::isSolid(targetType)) return; // prevent breaking air or water
 
             player->updateTexture(StaticAssets::PLAYER_MINE, 0.5f);
+            audioPlayer.play("assets/sounds/break.wav", 0.5f);
             breakBlock(target);
             return;
         }
@@ -416,6 +418,7 @@ void GameManager::keyCallback(const Key key, const Action action, const Modifier
             if (BlockStates::isSolid(targetType)) return; // prevent replacing solid blocks
 
             player->updateTexture(StaticAssets::PLAYER_MINE, 0.5f);
+            audioPlayer.play("assets/sounds/break.wav", 0.5f);
             placeBlock(target, player->selected);
             return;
         }

@@ -35,7 +35,7 @@ Entity::Entity(const EntityType type, const float width, const float height, con
 
 bool canJump = true;
 
-void EntityPlayer::update(const float deltaTime, const std::vector<std::vector<Block>>& blocks) {
+void EntityPlayer::update(const float deltaTime, const std::vector<std::vector<Block>>& blocks, AudioPlayer& audioPlayer) {
     constexpr float gravity = -8.0f;
     constexpr float maxFallSpeed = -5.0f;
 
@@ -49,6 +49,7 @@ void EntityPlayer::update(const float deltaTime, const std::vector<std::vector<B
             if (canJump) {
                 canJump = false;
                 velocity.y = 5.0f;
+                audioPlayer.play("assets/sounds/jump.wav", 0.5f);
             } else canJump = true;
         }
     }

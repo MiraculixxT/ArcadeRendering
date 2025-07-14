@@ -5,6 +5,7 @@
 #ifndef ENTITY_HPP
 #define ENTITY_HPP
 #include "assetManager.hpp"
+#include "audioPlayer.hpp"
 #include "block.hpp"
 
 namespace arcader {
@@ -40,8 +41,9 @@ public:
      * Must be implemented by derived classes.
      * @param deltaTime Time elapsed since the last update.
      * @param blocks all blocks
+     * @param audioPlayer Reference to the AudioPlayer for playing sounds.
      */
-    virtual void update(float deltaTime, const std::vector<std::vector<Block>>& blocks) = 0;
+    virtual void update(float deltaTime, const std::vector<std::vector<Block>>& blocks, AudioPlayer& audioPlayer) = 0;
 
     /**
      * Pure virtual function for rendering the entity.
@@ -86,12 +88,7 @@ public:
     explicit EntityPlayer(const glm::vec2& position)
         : Entity(EntityType::PLAYER, 0.4f, 0.9f, position, StaticAssets::PLAYER_IDLE) {}
 
-    /**
-     * Updates the player's state.
-     * @param deltaTime Time elapsed since the last update.
-     * @param blocks
-     */
-    void update(float deltaTime, const std::vector<std::vector<Block>>& blocks) override;
+    void update(float deltaTime, const std::vector<std::vector<Block>>& blocks, AudioPlayer& audioPlayer) override;
 
     /**
      * Renders the player entity.
