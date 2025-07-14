@@ -19,6 +19,7 @@ GameManager::GameManager(AssetManager *assetsManager, int *height, int *width) :
                                                                                  debugShader(assetsManager->getShader(StaticAssets::SHADER_DEBUG)),
                                                                                  hudShader(assetsManager->getShader(StaticAssets::SHADER_HUD)),
                                                                                  audioPlayer(AudioPlayer{}) {
+    audioPlayer.init();
     blocks.resize(worldWidth, std::vector<Block>(worldHeight));
 };
 
