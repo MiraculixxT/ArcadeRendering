@@ -31,7 +31,10 @@ void GameManager::init() {
         StaticAssets texture = BlockStates::getTextureToFromType(type);
         assets->loadTexture(texture, "assets/textures/game/" + BlockStates::getTextureName(type) + ".png");
     }
-    assets->loadTexture(StaticAssets::ENTITY_PLAYER, "assets/textures/game/player.png");
+    assets->loadTexture(StaticAssets::PLAYER_IDLE, "assets/textures/game/player_stand.png");
+    assets->loadTexture(StaticAssets::PLAYER_MINE, "assets/textures/game/player_mine.png");
+    assets->loadTexture(StaticAssets::PLAYER_WALK1, "assets/textures/game/player_walk1.png");
+    assets->loadTexture(StaticAssets::PLAYER_WALK2, "assets/textures/game/player_walk2.png");
     assets->loadTexture(StaticAssets::HUD_SLOT, "assets/textures/game/slot.png");
     assets->loadTexture(StaticAssets::BACKGROUND, "assets/textures/game/background.png");
 
@@ -56,7 +59,7 @@ void GameManager::init() {
     printf("  - Initializing blocks...\n");
     std::random_device rd;
     seed = static_cast<int>(rd());
-    frequency = 0.03f;
+    frequency = 0.04f;
     terrainBase = 0.0f;
     terrainPeak = 100.0f;
     treeFrequency = 0.15f;
@@ -67,7 +70,7 @@ void GameManager::init() {
     // Initialize player
     printf("  - Initializing entities...\n");
     entities.clear();
-    auto pPlayer = std::make_unique<EntityPlayer>(vec2(16, BlockStates::getHighestBlock(true, 16, blocks) + 1));
+    auto pPlayer = std::make_unique<EntityPlayer>(vec2(16.5, BlockStates::getHighestBlock(true, 16, blocks) + 1));
     player = pPlayer.get();
     entities.push_back(std::move(pPlayer));
 }
@@ -332,7 +335,7 @@ void GameManager::render(Camera &camera) {
         if (!showHitboxes) continue;
         debugShader.use();
         debugShader.set("u_Color", vec4(1.0f, 0.0f, 0.0f, 0.8f));
-        auto worldPos2 = vec3(entity->position - vec2(entity->getWidth() / 2.0f, 0.0), 0.02f);
+        auto worldPos2 = vec3(entity->position - vec2(entity->getWidth() / 2.0f, 0.0), 0.03f);
         mat4 model2 = translate(mat4(1.0f), worldPos2);
         model2 = scale(model2, vec3(entity->getWidth(), entity->getHeight(), 1.0f));
         mat4 mvp2 = projection * view * model2;
@@ -396,6 +399,8 @@ void GameManager::keyCallback(const Key key, const Action action, const Modifier
 
             const auto targetType = blocks[target.x][target.y].type;
             if (!BlockStates::isSolid(targetType)) return; // prevent breaking air or water
+
+            player->updateTexture(StaticAssets::PLAYER_MINE, 0.5f);
             breakBlock(target);
             return;
         }
@@ -409,6 +414,8 @@ void GameManager::keyCallback(const Key key, const Action action, const Modifier
             if (player->selected == BlockType::AIR) return;
             const auto targetType = blocks[target.x][target.y].type;
             if (BlockStates::isSolid(targetType)) return; // prevent replacing solid blocks
+
+            player->updateTexture(StaticAssets::PLAYER_MINE, 0.5f);
             placeBlock(target, player->selected);
             return;
         }

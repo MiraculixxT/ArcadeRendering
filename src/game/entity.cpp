@@ -4,6 +4,7 @@
 
 #include "game/entity.hpp"
 
+#include "audioPlayer.hpp"
 #include "framework/app.hpp"
 #include "game/block.hpp"
 #include "glm/detail/_noise.hpp"
@@ -20,16 +21,17 @@ StaticAssets Entity::getTextureToFromType(const EntityType &type) {
 }
 */
 
-Entity::Entity(const EntityType type, const float width, const float height, const glm::vec2 &position):
+Entity::Entity(const EntityType type, const float width, const float height, const glm::vec2 &position, const StaticAssets startSprite):
     ticksLived(0),
     type(type),
-    texture(getTextureToFromType(type)),
     width(width),
     widthHalf(width / 2.0f),
     height(height),
     direction(false),
+    currentSprite(startSprite),
     position(position),
-    velocity(vec2(0.0,0.0)) {}
+    velocity(vec2(0.0, 0.0)) {
+}
 
 bool canJump = true;
 
@@ -124,6 +126,26 @@ void EntityPlayer::update(const float deltaTime, const std::vector<std::vector<B
     // Update direction
     if (velocity.x < 0.0f) direction = false;
     else if (velocity.x > 0.0f) direction = true;
+
+    // Update sprite based on velocity
+    if (spriteTimer >= 0.0f) {
+        spriteTimer -= deltaTime;
+
+        if (spriteTimer <= 0.0f) {
+            spriteTimer = 0.0f;
+            if (std::abs(velocity.x) > 0.01f) {
+                // Walking animation
+                if (currentSprite == StaticAssets::PLAYER_WALK1 || currentSprite == StaticAssets::PLAYER_IDLE) {
+                    updateTexture(StaticAssets::PLAYER_WALK2, 0.2f);
+                } else {
+                    updateTexture(StaticAssets::PLAYER_WALK1, 0.2f);
+                }
+            } else {
+                // Idle animation
+                updateTexture(StaticAssets::PLAYER_IDLE, 0.0f);
+            }
+        }
+    }
 
     // Friction
     velocity.x *= 0.8f;

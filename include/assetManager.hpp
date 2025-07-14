@@ -57,8 +57,10 @@ namespace arcader {
         BLOCK_STONE,
         BLOCK_WATER,
         BLOCK_AIR,
-        ENTITY_PLAYER,
-        ENTITY_TREE,
+        PLAYER_IDLE,
+        PLAYER_WALK1,
+        PLAYER_WALK2,
+        PLAYER_MINE,
         HUD_SLOT,
         BACKGROUND,
 

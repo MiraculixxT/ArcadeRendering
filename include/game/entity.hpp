@@ -18,17 +18,20 @@ class Entity {
 protected:
     int ticksLived;
     EntityType type;
-    StaticAssets texture;
     float width;
     float widthHalf;
     float height;
     bool direction; // Direction of movement, true for right, false for left
 
+    // sprite management
+    StaticAssets currentSprite;
+    float spriteTimer = 0.0f;
+
 public:
     glm::vec2 position;
     glm::vec2 velocity;
 
-    Entity(EntityType type, float width, float height, const glm::vec2& position);
+    Entity(EntityType type, float width, float height, const glm::vec2& position, StaticAssets startSprite);
 
     virtual ~Entity() = default;
 
@@ -49,22 +52,16 @@ public:
     virtual void render(const glm::mat4 &worldToClip, AssetManager *assets) const {}
 
     [[nodiscard]] virtual EntityType getType() const { return type; }
-    [[nodiscard]] virtual StaticAssets getTexture() const { return texture; }
     [[nodiscard]] virtual float getWidth() const { return width; }
     [[nodiscard]] virtual float getHeight() const { return height; }
     [[nodiscard]] virtual int getTicksLived() const { return ticksLived; }
     [[nodiscard]] virtual bool getDirection() const { return direction; }
+    [[nodiscard]] virtual StaticAssets getTexture() const { return currentSprite; }
 
-    static StaticAssets getTextureToFromType(const EntityType& type) {
-        switch (type) {
-            case EntityType::PLAYER: return StaticAssets::ENTITY_PLAYER;
-            case EntityType::TREE: return StaticAssets::ENTITY_TREE;
-
-            default:
-                printf("Missing Texture: %d\n", static_cast<int>(type));
-                return StaticAssets::MISSING_TEXTURE;
-        }
-    };
+    void updateTexture(const StaticAssets newSprite, const float time) {
+        spriteTimer = time;
+        currentSprite = newSprite;
+    }
 };
 
 
@@ -87,7 +84,7 @@ public:
      * @param position Initial position of the player.
      */
     explicit EntityPlayer(const glm::vec2& position)
-        : Entity(EntityType::PLAYER, 0.6f, 0.9f, position) {}
+        : Entity(EntityType::PLAYER, 0.4f, 0.9f, position, StaticAssets::PLAYER_IDLE) {}
 
     /**
      * Updates the player's state.
