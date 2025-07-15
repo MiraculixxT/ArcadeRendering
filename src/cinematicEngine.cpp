@@ -30,7 +30,7 @@ namespace arcader {
 
         // init camera
         camera.resize(static_cast<float>(windowWidth) / windowHeight);
-        camera.worldPosition = {0.0f, 60.5f, 9.5f};
+        camera.worldPosition = {0.0f, 62.0f, 10.0f};
         camera.target = {0.0f, 60.0f, 0.0f};
         camera.update();
 
@@ -86,22 +86,59 @@ namespace arcader {
         switch (state) {
             case 0: {
                 dustParticles.update(dt);
-                lighting.update(glm::vec3(0.0f, -1.0f, -1.0f), glm::vec3(0.1f, 0.15f, 0.25f)); // static light direction and color
-                if (timer < 7.0f) {
-                    // all lights off
+                lighting.update(glm::vec3(0.0f, -1.0f, -1.0f), glm::vec3(0.1f, 0.15f, 0.25f));
+
+                // Simulate slow camera movement with sinusoidal bobbing and staged light flicker after 15 seconds
+                if (timer < 15.0f) {
+                    float t = timer;
+                    float z = 10.0f - t * 0.2f; // slow movement forward
+                    float y = 62.5f + sin(t * 3.0f) * 0.05f; // vertical bobbing
+                    glm::vec3 camPos = glm::vec3(0.0f, y, z);
+                    glm::vec3 lookAt = glm::vec3(0.0f, 60.0f, 0.0f);
+
+                    static float prevT = -1.0f;
+                    if (prevT >= 0.0f) {
+                        float prevSin = sin(prevT * 3.0f);
+                        float currSin = sin(t * 3.0f);
+                        if (prevSin < currSin && sin(t * 3.0f + 0.016f) < currSin) {
+                            audioPlayer.play("assets/sounds/footstep.wav", 1.5f);
+                        }
+                    }
+                    prevT = t;
+
+                    if (timer >= 11.0f && timer < 15.0f) {
+                        float t = timer - 11.0f;
+                        // smooth in-out over full 4 seconds
+                        float s = sin(t * glm::pi<float>() / 4.0f); // smooth in-out over full 4 seconds
+                        lookAt.x = sin(s * glm::pi<float>()) * 3.0f;
+                    }
+
+                    camera.worldPosition = camPos;
+                    camera.target = lookAt;
+                    camera.update();
+
                     for (int i = 0; i < lighting.getPointLights().size(); ++i) {
                         lighting.setPointLightIntensity(i, 0.0f);
                     }
-                } else if (timer < 12.0f) {
+                } else if (timer < 20.0f) {
+
+                    glm::vec3 lookAt = glm::vec3(0.0f, 60.0f, 0.0f);
+
+                    if (timer >= 15.0f && timer < 20.0f) {
+                        float t = (timer - 15.0f) / 5.0f; // from 0 to 1 over 5 seconds
+                        lookAt.x = sin(t * glm::pi<float>()) * -3.0f; // smooth sinusoidal motion to the left and back
+                    }
+
+                    camera.target = lookAt;
+                    camera.update();
 
                     if(!audioPlayer.isPlaying("assets/sounds/lightflicker.wav")) {
                         printf("Playing light flicker sound\n");
                         audioPlayer.play("assets/sounds/lightflicker.wav", 0.5f);
                     }
 
-                    // light flickering
                     for (int i = 0; i < 3; ++i) {
-                        float activationTime = 7.0f + i * 2.0f;
+                        float activationTime = 15.0f + i * 2.0f;
                         if (timer < activationTime) {
                             lighting.setPointLightIntensity(i, 0.0f);
                         } else if (timer < activationTime + 2.0f) {
@@ -109,14 +146,13 @@ namespace arcader {
                             float flicker = (sin(t) > 0.6f) ? 2.5f :
                                             (sin(t * 0.7f) > 0.3f) ? 1.2f :
                                             (rand() % 100 < 10) ? 0.5f : 0.0f;
-                            lighting.setPointLightIntensity(i, flicker);} else {
+                            lighting.setPointLightIntensity(i, flicker);
+                        } else {
                             lighting.setPointLightIntensity(i, 2.5f);
-
                         }
                     }
 
-                    // if all lights are on for a while, switch to next state
-                    if (timer > 7.0f + lighting.getPointLights().size() * 2.0f) {
+                    if (timer > 30.0f + lighting.getPointLights().size() * 2.0f) {
                         setState(1);
                     }
                 } else {
@@ -127,25 +163,47 @@ namespace arcader {
             case 1: {
                 dustParticles.update(dt);
 
-                glm::vec3 targetCamPos = glm::vec3(0.0f, 62.4f, 0.2f);
-                glm::vec3 targetLookAt = glm::vec3(0.0f, 62.3f, 0.0f);
+                // Camera movement: similar to state 0, but move in faster and bob
+                if(camera.worldPosition.z > 1.5f) {
+                    float t = timer;
+                    float z = 7.0f - t * 0.7f; // move faster than in state 0
+                    float y = 62.5f + sin(t * 3.0f) * 0.05f;
+                    glm::vec3 camPos = glm::vec3(0.0f, y, z);
 
-                // slow start
-                float progress = glm::clamp(timer / 4.0f, 0.0f, 1.0f);
-                float speed = progress * 0.005f;
-                camera.worldPosition = glm::mix(camera.worldPosition, targetCamPos, speed);
-                camera.target = glm::mix(camera.target, targetLookAt, speed);
-                camera.update();
+                    float baseLookY = 60.0f + (2.0f * t / 8.0f); // prevent looking too low
+                    glm::vec3 lookAt = glm::vec3(0.0f, baseLookY, 0.0f);
 
-                for (int i = 0; i < 3; ++i) {
-                    lighting.setPointLightIntensity(i, 2.5f); // last row lights on
+                    static float prevT = -1.0f;
+                    if (prevT >= 0.0f) {
+                        float prevSin = sin(prevT * 3.0f);
+                        float currSin = sin(t * 3.0f);
+                        if (prevSin < currSin && sin(t * 3.0f + 0.016f) < currSin) {
+                            audioPlayer.play("assets/sounds/footstep.wav", 1.5f);
+                        }
+                    }
+                    prevT = t;
+
+                    camera.worldPosition = camPos;
+                    camera.target = lookAt;
+                    camera.update();
                 }
 
-                if (glm::length(camera.worldPosition - targetCamPos) < 0.01f) {
+                for (int i = 0; i < 3; ++i) {
+                    lighting.setPointLightIntensity(i, 2.5f);
+                }
+
+                // Insert Coin
+                if (timer >=9.0f && timer < 10.0f) {
+                    printf("Insert Coin\n");
+                    audioPlayer.play("assets/sounds/coin.wav", 0.5f);
+                }
+
+                if (timer > 10.0f) {
                     setState(2);
                     if(!audioPlayer.isPlaying("assets/sounds/activate.wav")) {
                         printf("Playing arcade sound\n");
-                        audioPlayer.play("assets/sounds/activate.wav", 0.5f);                    }
+                        audioPlayer.play("assets/sounds/activate.wav", 0.5f);
+                    }
                     game->init();
                 }
 
