@@ -323,8 +323,9 @@ void GameManager::render(Camera &camera) {
         tileShader.set("u_Texture", 0);
         tileShader.set("u_FlipX", entity->getDirection());
 
-        auto worldPos = vec3(entity->position - vec2(0.5, 0.0), 0.02f);
+        auto worldPos = vec3(entity->position - vec2(0.75, 0.0), 0.02f);
         mat4 model = translate(mat4(1.0f), worldPos);
+        model = scale(model, vec3(1.5f));
         mat4 mvp = projection * view * model;
 
         tileShader.set("u_MVP", mvp);
