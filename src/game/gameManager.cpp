@@ -183,14 +183,14 @@ void GameManager::placeBlock(const uvec2 pos, const BlockType type) {
     if (type == BlockType::WATER) {
         // Check if we can flow down
         if (y > 0 && blocks[x][y - 1].type == BlockType::AIR) {
-            placeBlock(uvec2(x, y - 1), BlockType::WATER);
+            blockUpdates.push_back({BlockType::WATER, uvec2(x, y - 1)});
         }
         // Check if we can flow left or right
         if (x > 0 && blocks[x - 1][y].type == BlockType::AIR) {
-            placeBlock(uvec2(x - 1, y), BlockType::WATER);
+            blockUpdates.push_back({BlockType::WATER, uvec2(x - 1, y)});
         }
         if (x < worldWidth - 1 && blocks[x + 1][y].type == BlockType::AIR) {
-            placeBlock(uvec2(x + 1, y), BlockType::WATER);
+            blockUpdates.push_back({BlockType::WATER, uvec2(x + 1, y)});
         }
     }
 
@@ -219,6 +219,17 @@ void GameManager::breakBlock(const uvec2 pos) {
 }
 
 void GameManager::update(const float deltaTime) {
+    // Update blocks
+    blockUpdateDelay -= deltaTime;
+    if (blockUpdateDelay <= 0.0f) {
+        blockUpdateDelay = 0.1f; // Reset delay
+        const auto updateCopy = blockUpdates;
+        blockUpdates.clear();
+        for (const auto blockUpdate : updateCopy) {
+            placeBlock(blockUpdate.position, blockUpdate.type);
+        }
+    }
+
     // Update entities
     for (const auto &entity : entities) {
         entity->update(deltaTime, blocks, audioPlayer);

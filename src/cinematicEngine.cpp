@@ -30,7 +30,7 @@ namespace arcader {
 
         // init camera
         camera.resize(static_cast<float>(windowWidth) / windowHeight);
-        camera.worldPosition = {0.0f, 60.5f, 10.0f};
+        camera.worldPosition = {0.0f, 60.5f, 9.5f};
         camera.target = {0.0f, 60.0f, 0.0f};
         camera.update();
 

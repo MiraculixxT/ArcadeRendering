@@ -33,6 +33,14 @@ struct Block {
     StaticAssets texture;
 };
 
+/**
+ * Holder struct for block updates that are scheduled to be applied.
+ */
+struct BlockUpdate {
+    BlockType type;
+    glm::uvec2 position;
+};
+
 class BlockStates {
 public:
     /**

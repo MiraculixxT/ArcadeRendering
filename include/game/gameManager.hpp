@@ -29,6 +29,7 @@ class GameManager {
      */
     std::vector<std::vector<Block>> blocks;
     static constexpr int blockDimension = 16;
+    std::vector<BlockUpdate> blockUpdates;
 
     std::vector<std::unique_ptr<Entity>> entities;
 
@@ -46,7 +47,8 @@ class GameManager {
     EntityPlayer* player = nullptr;
     AudioPlayer audioPlayer;
 
-    float startTime = 0;
+    float startTime = 0.0f;
+    float blockUpdateDelay = 0.0f;
 
 public:
     GameManager(AssetManager *assetsManager, int *height, int *width);
