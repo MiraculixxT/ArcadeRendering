@@ -86,7 +86,7 @@ public:
      * @param position Initial position of the player.
      */
     explicit EntityPlayer(const glm::vec2& position)
-        : Entity(EntityType::PLAYER, 0.4f, 0.9f, position, StaticAssets::PLAYER_IDLE) {}
+        : Entity(EntityType::PLAYER, 0.6f, 1.35f, position, StaticAssets::PLAYER_IDLE) {}
 
     void update(float deltaTime, const std::vector<std::vector<Block>>& blocks, AudioPlayer& audioPlayer) override;
 

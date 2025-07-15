@@ -163,16 +163,17 @@ bool EntityPlayer::getDirection() const {
 }
 
 uvec2 EntityPlayer::getTargetPosition() const {
-    int placeX = static_cast<int>(std::floor(position.x));
-    int placeY = static_cast<int>(std::floor(position.y));
+    float placeX = position.x;
+    float placeY = position.y;
 
     if (isPressingUp || isPressingDown) { // prioritize vertical direction
-        if (isPressingUp) placeY += 1;
-        if (isPressingDown) placeY -= 1;
+        if (isPressingUp) placeY += 2.0f;
+        if (isPressingDown) placeY -= 1.0f;
 
     } else { // Horizontal direction
-        placeX += (getDirection() ? 1 : -1);
+        placeY += height / 2.0f; // Center vertically
+        placeX += (getDirection() ? 1.0f : -1.0f);
     }
-    return {placeX, placeY};
+    return {static_cast<int>(floor(placeX)), static_cast<int>(floor(placeY))};
 }
 } // arcader
