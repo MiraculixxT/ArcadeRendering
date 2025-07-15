@@ -36,7 +36,8 @@ void GameManager::init() {
     assets->loadTexture(StaticAssets::PLAYER_IDLE, "assets/textures/game/player_stand.png");
     assets->loadTexture(StaticAssets::PLAYER_MINE, "assets/textures/game/player_mine.png");
     assets->loadTexture(StaticAssets::PLAYER_WALK1, "assets/textures/game/player_walk1.png");
-    assets->loadTexture(StaticAssets::PLAYER_WALK2, "assets/textures/game/player_walk2.png");
+    assets->loadTexture(StaticAssets::PLAYER_WALK2, "assets/textures/game/player_stand.png"); // Reusing stand texture for walk2
+    assets->loadTexture(StaticAssets::PLAYER_WALK3, "assets/textures/game/player_walk2.png");
     assets->loadTexture(StaticAssets::HUD_SLOT, "assets/textures/game/slot.png");
     assets->loadTexture(StaticAssets::BACKGROUND, "assets/textures/game/background.png");
 

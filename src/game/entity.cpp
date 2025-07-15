@@ -136,10 +136,11 @@ void EntityPlayer::update(const float deltaTime, const std::vector<std::vector<B
             spriteTimer = 0.0f;
             if (std::abs(velocity.x) > 0.01f) {
                 // Walking animation
-                if (currentSprite == StaticAssets::PLAYER_WALK1 || currentSprite == StaticAssets::PLAYER_IDLE) {
-                    updateTexture(StaticAssets::PLAYER_WALK2, 0.2f);
-                } else {
-                    updateTexture(StaticAssets::PLAYER_WALK1, 0.2f);
+                switch (currentSprite) {
+                    case StaticAssets::PLAYER_WALK1: updateTexture(StaticAssets::PLAYER_WALK2, 0.2f); break;
+                    case StaticAssets::PLAYER_WALK2: updateTexture(StaticAssets::PLAYER_WALK3, 0.2f); break;
+                    case StaticAssets::PLAYER_WALK3: updateTexture(StaticAssets::PLAYER_IDLE, 0.2f); break;
+                    default: updateTexture(StaticAssets::PLAYER_WALK1, 0.2f); break;
                 }
             } else {
                 // Idle animation

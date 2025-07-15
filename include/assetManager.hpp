@@ -60,6 +60,7 @@ namespace arcader {
         PLAYER_IDLE,
         PLAYER_WALK1,
         PLAYER_WALK2,
+        PLAYER_WALK3,
         PLAYER_MINE,
         HUD_SLOT,
         BACKGROUND,
