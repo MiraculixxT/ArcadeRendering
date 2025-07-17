@@ -84,6 +84,7 @@ namespace arcader {
         loadMesh(meshName, meshPath);
         loadShader(shaderName, vertexShader, fragmentShader);
 
+        // Load textures and create a vector of texture names
         std::vector<StaticAssets> textureNames;
         for (size_t i = 0; i < texturePaths.size(); ++i) {
             auto texName = static_cast<StaticAssets>(static_cast<int>(name) + static_cast<int>(i) +

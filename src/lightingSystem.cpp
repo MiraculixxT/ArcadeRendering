@@ -19,6 +19,7 @@ void LightingSystem::update(const glm::vec3& newDir, const glm::vec3& newColor) 
 }
 
 void LightingSystem::bindToShader(Program& shader) const {
+    // Bind ambient light and directional light to the shader
     shader.set("uAmbientColor", ambientColor);
     shader.set("uLightDirection", lightDirection);
     shader.set("uLightColor", lightColor);
@@ -33,6 +34,7 @@ const std::vector<LightingSystem::PointLight>& LightingSystem::getPointLights() 
 }
 
 void LightingSystem::bindPointLightsToShader(Program& shader) const {
+    // Bind point lights to the shader
     shader.set("uNumPointLights", static_cast<int>(pointLights.size()));
     for (size_t i = 0; i < pointLights.size(); ++i) {
         const auto& light = pointLights[i];

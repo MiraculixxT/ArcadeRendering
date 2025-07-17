@@ -14,15 +14,16 @@ void DustParticles::init(size_t count, float spread) {
     std::uniform_real_distribution<float> dist(-spread, spread);
     std::uniform_real_distribution<float> distY(50.0f, 70.0f);
     for (size_t i = 0; i < count; ++i) {
-        glm::vec3 pos(dist(rng), distY(rng), dist(rng)); // fester Raum
+        glm::vec3 pos(dist(rng), distY(rng), dist(rng)); // random position in spread area
         glm::vec3 vel(
-            0.01f * dist(rng),                     // leichter Drift x
-            -0.01f * dist(rng),                    // sehr sanft vertikal
-            0.01f * dist(rng)                      // leichter Drift z
+            0.01f * dist(rng),                     // slight drift horizontal
+            -0.01f * dist(rng),                    // slight drift vertical
+            0.01f * dist(rng)                      // slight drift depth
         );
         particles.push_back({ pos, vel });
     }
 
+    // Create VAO and VBO
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
     glBindVertexArray(vao);
@@ -45,6 +46,7 @@ void DustParticles::render() {
 }
 
 void DustParticles::update(float dt) {
+    // Update particle positions based on their velocities
     for (auto& p : particles) {
         p.position += p.velocity * dt;
         if (p.position.y < 50.0f) {
@@ -52,6 +54,7 @@ void DustParticles::update(float dt) {
         }
     }
 
+    // Update VBO with new positions
     std::vector<glm::vec3> gpuPositions;
     gpuPositions.reserve(particles.size());
     for (const auto& p : particles) {

@@ -13,6 +13,7 @@ void AudioPlayer::init() {
 }
 
 void AudioPlayer::play(const std::string& filename, float volume) {
+    // Check if the sound is already loaded
     if (sounds.contains(filename)) {
         ma_sound* s = sounds[filename].get();
         if (!ma_sound_is_playing(s)) {
@@ -22,12 +23,15 @@ void AudioPlayer::play(const std::string& filename, float volume) {
         return;
     }
 
+    // Load the sound file
     auto sound = std::make_unique<ma_sound>();
     ma_result result = ma_sound_init_from_file(&engine, filename.c_str(), MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_ASYNC, nullptr, nullptr, sound.get());
     if (result != MA_SUCCESS) {
         std::cerr << "Failed to load sound: " << filename << std::endl;
         return;
     }
+
+    // Set volume and start playing
     ma_sound_set_volume(sound.get(), volume);
     ma_sound_start(sound.get());
     sounds[filename] = std::move(sound);

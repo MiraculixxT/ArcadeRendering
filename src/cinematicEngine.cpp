@@ -55,6 +55,8 @@ namespace arcader {
     void CinematicEngine::update(float deltaTime) {
         timer += deltaTime;
         updateScene(state, deltaTime);
+
+        // Play background sound if not already playing
         if(!audioPlayer.isPlaying("assets/sounds/emptyroom.wav")) {
             printf("Playing room sound\n");
             audioPlayer.play("assets/sounds/emptyroom.wav", 0.2f);
@@ -91,7 +93,7 @@ namespace arcader {
                 dustParticles.update(dt);
                 lighting.update(glm::vec3(0.0f, -1.0f, -1.0f), glm::vec3(0.1f, 0.15f, 0.25f));
 
-                // Simulate slow camera movement with sinusoidal bobbing and staged light flicker after 15 seconds
+                // Simulate slow camera movement with staged light flicker after 15 seconds
                 if (timer < 15.0f) {
                     float t = timer;
                     float z = 10.0f - t * 0.2f; // slow movement forward
@@ -103,6 +105,8 @@ namespace arcader {
                     if (prevT >= 0.0f) {
                         float prevSin = sin(prevT * 3.0f);
                         float currSin = sin(t * 3.0f);
+
+                        // play footstep sound when stepping up
                         if (prevSin < currSin && sin(t * 3.0f + 0.016f) < currSin) {
                             audioPlayer.play("assets/sounds/footstep.wav", 1.5f);
                         }
@@ -140,6 +144,7 @@ namespace arcader {
                         audioPlayer.play("assets/sounds/lightflicker.wav", 0.5f);
                     }
 
+                    // Flickering lights
                     for (int i = 0; i < 3; ++i) {
                         float activationTime = 15.0f + i * 2.0f;
                         if (timer < activationTime) {
@@ -180,6 +185,7 @@ namespace arcader {
                     if (prevT >= 0.0f) {
                         float prevSin = sin(prevT * 3.0f);
                         float currSin = sin(t * 3.0f);
+                        // play footstep sound when stepping up
                         if (prevSin < currSin && sin(t * 3.0f + 0.016f) < currSin) {
                             audioPlayer.play("assets/sounds/footstep.wav", 1.5f);
                         }
@@ -191,6 +197,7 @@ namespace arcader {
                     camera.update();
                 }
 
+                // All point lights are on
                 for (int i = 0; i < 3; ++i) {
                     lighting.setPointLightIntensity(i, 2.5f);
                 }
@@ -279,6 +286,8 @@ namespace arcader {
                 ARCADE_MACHINE_5
             };
 
+            // Load arcade machines if not already loaded and bind shaders and lighting
+
             int z = 1;
             for(const auto &machine : machines) {
                 if (!assets->hasRenderable(machine)) {
@@ -339,6 +348,8 @@ namespace arcader {
                 x += 4;
             }
 
+
+            // Render the room
             if (!assets->hasRenderable(ROOM)) {
                 assets->loadRenderable(
                     ROOM,
@@ -376,6 +387,7 @@ namespace arcader {
             dustShader.set("uCameraUp", glm::vec3(camera.viewMatrix[1]));
             dustShader.set("uSize", 0.25f);
 
+            // Enable blending for dust particles
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glDisable(GL_DEPTH_TEST);
@@ -401,6 +413,7 @@ namespace arcader {
         glm::mat4 lightView = glm::lookAt(-lightDir * 50.0f, glm::vec3(0.0f), glm::vec3(0, 1, 0));
         lightSpaceMatrix = lightProjection * lightView;
 
+        // Set viewport to shadow map size
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
         glClear(GL_DEPTH_BUFFER_BIT);
@@ -411,6 +424,7 @@ namespace arcader {
 
         using enum StaticAssets;
 
+        // Render all arcade machines in shadow pass
         int x = 4;
         for (int i = 1; i < 3; ++i) {
 
@@ -465,6 +479,7 @@ namespace arcader {
         GLint prevViewport[4];
         glGetIntegerv(GL_VIEWPORT, prevViewport);
 
+        // Shadow map setup
         glGenFramebuffers(1, &depthMapFBO);
 
         glGenTextures(1, &depthMap);
@@ -489,10 +504,12 @@ namespace arcader {
     }
 
     GLuint CinematicEngine::loadCubemap(const std::vector<std::string>& faces) {
+        // Load cubemap textures
         GLuint textureID;
         glGenTextures(1, &textureID);
         glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
 
+        // Load each face of the cubemap
         int width, height, nrChannels;
         for (unsigned int i = 0; i < faces.size(); i++) {
             unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
@@ -507,6 +524,7 @@ namespace arcader {
                 stbi_image_free(data);
             }
         }
+        // Set texture parameters
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -571,6 +589,7 @@ namespace arcader {
                 "assets/textures/sky/Box_Back.png"
         };
 
+        // Generate and bind the skybox VAO and VBO
         GLuint skyboxVAO, skyboxVBO;
         glGenVertexArrays(1, &skyboxVAO);
         glGenBuffers(1, &skyboxVBO);

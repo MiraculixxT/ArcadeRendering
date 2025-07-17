@@ -26,6 +26,7 @@ uniform sampler2D tex0;
 out vec4 fragColor;
 
 void main() {
+    // Normalize inputs
     vec3 normal = normalize(fragNormal);
     vec3 viewDir = normalize(fragViewDir);
     vec3 lightDir = normalize(uLightDirection);
@@ -55,6 +56,7 @@ void main() {
         }
     }
 
+    // Shadow Mapping
     vec4 fragPosLight = uLightSpaceMatrix * vec4(fragWorldPos, 1.0);
     vec3 projCoords = fragPosLight.xyz / fragPosLight.w;
     projCoords = projCoords * 0.5 + 0.5;

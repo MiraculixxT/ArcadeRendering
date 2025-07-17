@@ -16,6 +16,7 @@ void main() {
     if (texColor.a < 0.1)
         discard;
 
+    // Calculate light accumulation
     vec3 lightAccum = vec3(0.0);
     for (int i = 0; i < uLightCount; ++i) {
         vec3 lightVec = uLightPos[i] - uFragPos;
@@ -26,6 +27,7 @@ void main() {
         }
     }
 
+    // Combine ambient and diffuse lighting
     vec3 ambient = 0.1 * texColor.rgb;
     vec3 finalColor = ambient + texColor.rgb * lightAccum;
     FragColor = vec4(finalColor, texColor.a * uAlpha);
