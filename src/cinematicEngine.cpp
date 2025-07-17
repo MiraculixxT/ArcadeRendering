@@ -6,6 +6,9 @@
 #include "lightingSystem.hpp"
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
+#include <algorithm>
+#include <random>
+#include <ctime>
 
 
 namespace arcader {
@@ -194,7 +197,6 @@ namespace arcader {
 
                 // Insert Coin
                 if (timer >=9.0f && timer < 10.0f) {
-                    printf("Insert Coin\n");
                     audioPlayer.play("assets/sounds/coin.wav", 0.5f);
                 }
 
@@ -267,81 +269,85 @@ namespace arcader {
         }
 
         if (assets) {
-            using
-            enum StaticAssets;
+            using enum StaticAssets;
 
-            if (!assets->hasRenderable(ARCADE_MACHINE)) {
-                assets->loadRenderable(
-                        ARCADE_MACHINE,
+            std::vector<StaticAssets> machines = {
+                ARCADE_MACHINE,
+                ARCADE_MACHINE_2,
+                ARCADE_MACHINE_3,
+                ARCADE_MACHINE_4,
+                ARCADE_MACHINE_5
+            };
+
+            int z = 1;
+            for(const auto &machine : machines) {
+                if (!assets->hasRenderable(machine)) {
+                    std::string texturePath = "assets/textures/Arcade_Color" + std::to_string(z) + ".png";
+                    assets->loadRenderable(
+                        machine,
                         "assets/meshes/arcade.obj",
                         "shaders/arcade.vsh",
                         "shaders/arcade.fsh",
                         {
-                                "assets/textures/Arcade_Color.png"
+                            texturePath
                         }
-                );
+                    );
+                    z += 1;
+                }
+                Program &arcadeShader = const_cast<Program &>(assets->getShader(machine));
+                lighting.bindToShader(arcadeShader);
+                lighting.bindPointLightsToShader(arcadeShader);
+                arcadeShader.use();
+                arcadeShader.set("uShadowMap", 1);
+                arcadeShader.set("uLightSpaceMatrix", lightSpaceMatrix);
             }
 
-            Program &arcadeShader = const_cast<Program &>(assets->getShader(ARCADE_MACHINE));
-            lighting.bindToShader(arcadeShader);
-            lighting.bindPointLightsToShader(arcadeShader);
-
-            arcadeShader.use();
-            arcadeShader.set("uShadowMap", 1);
-            arcadeShader.set("uLightSpaceMatrix", lightSpaceMatrix);
             glActiveTexture(GL_TEXTURE1);
             glBindTexture(GL_TEXTURE_2D, depthMap);
 
             assets->render(
-                    ARCADE_MACHINE,
-                    camera.projectionMatrix * camera.viewMatrix,
-                    glm::vec3(0.0f, 60.0f, 0.0f), // mittlere Maschine
-                    glm::vec3(0.5f)
+                ARCADE_MACHINE,
+                camera.projectionMatrix * camera.viewMatrix,
+                glm::vec3(0.0f, 60.0f, 0.0f), // mittlere Maschine
+                glm::vec3(0.5f)
             );
+
+            // Arcade machine arrangement shuffle-once per row
+            static std::vector<std::vector<StaticAssets>> shuffledRows;
+            static bool initialized = false;
+            if (!initialized) {
+                for (int i = 0; i < 3; ++i) {
+                    std::vector<StaticAssets> row = {
+                        ARCADE_MACHINE_2,
+                        ARCADE_MACHINE_3,
+                        ARCADE_MACHINE_4,
+                        ARCADE_MACHINE_5
+                    };
+                    std::shuffle(row.begin(), row.end(), std::default_random_engine(static_cast<unsigned>(time(0) + i)));
+                    shuffledRows.push_back(row);
+                }
+                initialized = true;
+            }
 
             int x = 0;
             for (int i = 0; i < 3; ++i) {
-
-                assets->render(
-                        ARCADE_MACHINE,
-                        camera.projectionMatrix * camera.viewMatrix,
-                        glm::vec3(-2.0f, 60.0f, x), // linke Maschine
-                        glm::vec3(0.5f)
-                );
-
-                assets->render(
-                        ARCADE_MACHINE,
-                        camera.projectionMatrix * camera.viewMatrix,
-                        glm::vec3(2.0f, 60.0f, x), // rechte Maschine
-                        glm::vec3(0.5f)
-                );
-
-                assets->render(
-                        ARCADE_MACHINE,
-                        camera.projectionMatrix * camera.viewMatrix,
-                        glm::vec3(-4.0f, 60.0f, x), // linke Maschine
-                        glm::vec3(0.5f)
-                );
-
-                assets->render(
-                        ARCADE_MACHINE,
-                        camera.projectionMatrix * camera.viewMatrix,
-                        glm::vec3(4.0f, 60.0f, x), // rechte Maschine
-                        glm::vec3(0.5f)
-                );
-
-                x+=4;
+                const auto &rowMachines = shuffledRows[i];
+                assets->render(rowMachines[0], camera.projectionMatrix * camera.viewMatrix, glm::vec3(-2.0f, 60.0f, x), glm::vec3(0.5f));
+                assets->render(rowMachines[1], camera.projectionMatrix * camera.viewMatrix, glm::vec3(2.0f, 60.0f, x), glm::vec3(0.5f));
+                assets->render(rowMachines[2], camera.projectionMatrix * camera.viewMatrix, glm::vec3(-4.0f, 60.0f, x), glm::vec3(0.5f));
+                assets->render(rowMachines[3], camera.projectionMatrix * camera.viewMatrix, glm::vec3(4.0f, 60.0f, x), glm::vec3(0.5f));
+                x += 4;
             }
 
             if (!assets->hasRenderable(ROOM)) {
                 assets->loadRenderable(
-                        ROOM,
-                        "assets/meshes/newroom.obj",
-                        "shaders/arcade.vsh",
-                        "shaders/arcade.fsh",
-                        {
-                                "assets/textures/room_atlas.png",
-                        }
+                    ROOM,
+                    "assets/meshes/newroom.obj",
+                    "shaders/arcade.vsh",
+                    "shaders/arcade.fsh",
+                    {
+                        "assets/textures/room_atlas.png",
+                    }
                 );
             }
 
@@ -355,13 +361,11 @@ namespace arcader {
             glActiveTexture(GL_TEXTURE1);
             glBindTexture(GL_TEXTURE_2D, depthMap);
 
-
-
             assets->render(
-                    ROOM,
-                    camera.projectionMatrix * camera.viewMatrix,
-                    glm::vec3(-5.0f, 60.0f, 11.0f), // Room center
-                    glm::vec3(0.06f) // Scale
+                ROOM,
+                camera.projectionMatrix * camera.viewMatrix,
+                glm::vec3(-5.0f, 60.0f, 11.0f), // Room center
+                glm::vec3(0.06f) // Scale
             );
 
             // Render dust particles
@@ -384,7 +388,6 @@ namespace arcader {
             dustParticles.render();
 
             glEnable(GL_DEPTH_TEST);
-
         }
     }
 

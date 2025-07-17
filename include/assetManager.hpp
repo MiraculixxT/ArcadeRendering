@@ -70,6 +70,10 @@ namespace arcader {
         SHADER_HUD,
 
         ARCADE_MACHINE,
+        ARCADE_MACHINE_2,
+        ARCADE_MACHINE_3,
+        ARCADE_MACHINE_4,
+        ARCADE_MACHINE_5,
         ROOM
     };
 

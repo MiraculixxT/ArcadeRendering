@@ -58,6 +58,7 @@ namespace arcader {
 
         int state = 0;
         float timer = 0.0f;
+        bool shuffled = false;
 
         // Skybox rendering members
         Program skyboxShader;
